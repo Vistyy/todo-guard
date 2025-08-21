@@ -1,6 +1,6 @@
-# TDD Guard Session Clearing
+# Todo Guard Session Clearing
 
-TDD Guard automatically clears transient data when starting a new Claude Code session, preventing outdated test results from affecting TDD validation.
+Todo Guard automatically clears transient data when starting a new Claude Code session, preventing outdated test results from affecting TODO validation.
 
 ## What Gets Cleared
 
@@ -22,7 +22,7 @@ You can set this up either through the interactive `/hooks` command or by manual
 3. Select `+ Add new matcher…`
 4. Enter matcher: `startup|resume|clear`
 5. Select `+ Add new hook…`
-6. Enter command: `tdd-guard`
+6. Enter command: `todo-guard`
 7. Choose where to save:
    - **Project settings** (`.claude/settings.json`) - Recommended for team consistency
    - **Local settings** (`.claude/settings.local.json`) - For personal preferences
@@ -41,7 +41,7 @@ Add the following to your `.claude/settings.local.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "tdd-guard"
+            "command": "todo-guard"
           }
         ]
       }
@@ -61,10 +61,10 @@ The SessionStart hook triggers when:
 - A session is resumed (`resume`)
 - The `/clear` command is used (`clear`)
 
-When triggered, TDD Guard clears all transient data while preserving the guard state.
+When triggered, Todo Guard clears all transient data while preserving the guard state.
 
 ## Tips
 
 - No manual intervention needed - clearing happens automatically
 - To toggle the guard on/off, use the [quick commands](quick-commands.md)
-- For debugging, check `.claude/tdd-guard/` to see stored data
+- For debugging, check `.claude/todo-guard/` to see stored data

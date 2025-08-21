@@ -1,14 +1,14 @@
 # Ignore Patterns Guide
 
-Configure TDD Guard to skip validation for specific files using glob patterns.
+Configure Todo Guard to skip validation for specific files using glob patterns.
 
 ## Why Use Ignore Patterns?
 
-Control exactly which files TDD Guard validates. Useful for monorepos, rapid prototyping, or when different parts of your codebase need different validation rules.
+Control exactly which files Todo Guard validates. Useful for monorepos, rapid prototyping, or when different parts of your codebase need different validation rules.
 
 ## Default Ignore Patterns
 
-By default, TDD Guard ignores files with these extensions:
+By default, Todo Guard ignores files with these extensions:
 
 - `*.md` - Markdown documentation
 - `*.txt` - Text files
@@ -22,7 +22,7 @@ By default, TDD Guard ignores files with these extensions:
 
 ## Custom Ignore Patterns
 
-You can configure custom ignore patterns by creating a `config.json` file in the TDD Guard data directory (`.claude/tdd-guard/data/`):
+You can configure custom ignore patterns by creating a `config.json` file in the Todo Guard data directory (`.claude/todo-guard/data/`):
 
 ```json
 {
@@ -58,14 +58,14 @@ Patterns use minimatch syntax (similar to `.gitignore`):
 To see which patterns are currently active, check your `config.json` file:
 
 ```bash
-cat .claude/tdd-guard/data/config.json
+cat .claude/todo-guard/data/config.json
 ```
 
 If no custom patterns are configured, the default patterns listed above are used.
 
 ### Updating Patterns
 
-1. Create or edit `.claude/tdd-guard/data/config.json`
+1. Create or edit `.claude/todo-guard/data/config.json`
 2. Add your `ignorePatterns` array
 3. The changes take effect immediately
 
@@ -74,8 +74,8 @@ If no custom patterns are configured, the default patterns listed above are used
 To verify your patterns work as expected:
 
 1. Edit a file that should be ignored
-2. TDD Guard should skip validation immediately
+2. Todo Guard should skip validation immediately
 
 ## Summary
 
-Ignore patterns provide the flexibility to apply TDD validation exactly where you want it in your codebase. Start with the defaults, then customize as your project's needs evolve.
+Ignore patterns provide the flexibility to apply TODO validation exactly where you want it in your codebase. Start with the defaults, then customize as your project's needs evolve.

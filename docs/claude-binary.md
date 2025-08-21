@@ -1,7 +1,7 @@
 # Claude Binary Configuration
 
 Claude Code can be installed in different ways depending on your system and installation method.
-TDD Guard needs to locate your Claude binary to validate changes. This guide helps you configure TDD Guard to work with your installation.
+Todo Guard needs to locate your Claude binary to validate changes. This guide helps you configure Todo Guard to work with your installation.
 
 ## Finding Your Claude Installation
 
@@ -19,7 +19,7 @@ One of these should show your Claude installation path.
 
 ## Configuration Options
 
-If TDD Guard cannot find your Claude installation, choose one of these solutions:
+If Todo Guard cannot find your Claude installation, choose one of these solutions:
 
 ### Option 1: Environment Variable
 
@@ -31,7 +31,7 @@ USE_SYSTEM_CLAUDE=true
 
 ### Option 2: Symlink
 
-Point TDD Guard to your Claude installation:
+Point Todo Guard to your Claude installation:
 
 ```bash
 # Create the directory if it doesn't exist
@@ -70,4 +70,4 @@ If you continue to experience issues:
 
 1. Run `which claude` and note the output
 2. Check if `~/.claude/local/claude` exists
-3. Open an issue at [github.com/nizos/tdd-guard/issues](https://github.com/nizos/tdd-guard/issues) with this information
+3. Open an issue at [github.com/nizos/todo-guard/issues](https://github.com/nizos/todo-guard/issues) with this information

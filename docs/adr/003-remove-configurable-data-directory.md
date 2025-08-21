@@ -6,13 +6,13 @@ Accepted
 
 ## Context
 
-A security review identified a potential path traversal vulnerability in TDD Guard where the data directory path is taken from an environment variable (`TDD_DATA_DIR`) and used directly for file system operations without validation.
+A security review identified a potential path traversal vulnerability in Todo Guard where the data directory path is taken from an environment variable (`TODO_DATA_DIR`) and used directly for file system operations without validation.
 
 The vulnerability occurs because:
 
 - Environment variables can be manipulated by attackers
 - Path traversal sequences (`../`) in the path could escape the intended directory
-- For example, setting `TDD_DATA_DIR="../../../../etc"` would write files to system directories
+- For example, setting `TODO_DATA_DIR="../../../../etc"` would write files to system directories
 - The application writes files like `test.txt`, `todo.json`, and `modifications.json` to this directory
 
 We considered several approaches:
@@ -24,14 +24,14 @@ We considered several approaches:
 
 ## Decision
 
-We will remove the `TDD_DATA_DIR` environment variable and hardcode the data directory path to `.claude/tdd-guard/data` in the Config class.
+We will remove the `TODO_DATA_DIR` environment variable and hardcode the data directory path to `.claude/todo-guard/data` in the Config class.
 
 The implementation will:
 
-- Remove `TDD_DATA_DIR` from environment variable processing
-- Hardcode `dataDir` to `.claude/tdd-guard/data` in the Config constructor
+- Remove `TODO_DATA_DIR` from environment variable processing
+- Hardcode `dataDir` to `.claude/todo-guard/data` in the Config constructor
 - Keep the existing Config class interface unchanged for dependent code
-- Remove documentation about `TDD_DATA_DIR` from `.env.example`, README, and CLAUDE.md
+- Remove documentation about `TODO_DATA_DIR` from `.env.example`, README, and CLAUDE.md
 
 ## Consequences
 
@@ -39,13 +39,13 @@ The implementation will:
 
 - **Eliminates path traversal risk** - No user-controlled input for file paths
 - **Simpler implementation** - No validation or sanitization code needed
-- **Consistent data location** - All TDD Guard data in a predictable location
+- **Consistent data location** - All Todo Guard data in a predictable location
 - **Better security posture** - Follows principle of least privilege
 - **No breaking changes for code** - Config class interface remains the same
 
 ### Negative
 
-- **Less flexible** - Users cannot customize where TDD Guard stores its data
+- **Less flexible** - Users cannot customize where Todo Guard stores its data
 - **Potential disk space issues** - Users cannot redirect to different drives/partitions
 - **Testing limitations** - Integration tests cannot use isolated data directories
 

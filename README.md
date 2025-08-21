@@ -1,254 +1,135 @@
-# TDD Guard
+# Todo Guard
 
-[![npm version](https://badge.fury.io/js/tdd-guard.svg)](https://www.npmjs.com/package/tdd-guard)
-[![CI](https://github.com/nizos/tdd-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/nizos/tdd-guard/actions/workflows/ci.yml)
-[![Security](https://github.com/nizos/tdd-guard/actions/workflows/security.yml/badge.svg)](https://github.com/nizos/tdd-guard/actions/workflows/security.yml)
+[![npm version](https://badge.fury.io/js/todo-guard.svg)](https://www.npmjs.com/package/todo-guard)
+[![CI](https://github.com/nizos/todo-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/nizos/todo-guard/actions/workflows/ci.yml)
+[![Security](https://github.com/nizos/todo-guard/actions/workflows/security.yml/badge.svg)](https://github.com/nizos/todo-guard/actions/workflows/security.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Automated Test-Driven Development enforcement for Claude Code.
+Automated todo completion accountability for Claude Code.
 
 ## Overview
 
-TDD Guard ensures Claude Code follows Test-Driven Development principles. When your agent tries to skip tests or over-implement, TDD Guard blocks the action and explains what needs to happen instead—enforcing the red-green-refactor cycle automatically.
-
-<p align="center">
-  <a href="https://nizar.se/uploads/videos/tdd-guard-demo.mp4">
-    <img src="docs/assets/tdd-guard-demo-screenshot.gif" alt="TDD Guard Demo" width="600">
-  </a>
-  <br>
-  <em>Click to watch TDD Guard in action</em>
-</p>
+Todo Guard ensures Claude Code provides honest progress tracking when working with todo lists. When Claude tries to mark todos as completed without proper progression or evidence, Todo Guard blocks the action and guides toward more accountable task management.
 
 ## Features
 
-- **Test-First Enforcement** - Blocks implementation without failing tests
-- **Minimal Implementation** - Prevents code beyond current test requirements
-- **Lint Integration** - Enforces refactoring using your linting rules
-- **Multi-Language Support** - TypeScript, JavaScript, Python, PHP, and Go
-- **Session Control** - Toggle on and off mid-session
+- **Completion Pattern Validation** - Ensures todos follow proper progression patterns (pending → in_progress → completed)
+- **Bulk Completion Prevention** - Blocks suspicious patterns like marking multiple complex tasks complete simultaneously
+- **Task Scope Awareness** - Allows direct completion for simple tasks, requires progression for complex ones
+- **Session Control** - Toggle on and off mid-session with simple commands
 - **Configurable Validation** - Configure which files to validate with ignore patterns
-- **Flexible Validation** - Use local Claude or Anthropic API
+- **Flexible AI Models** - Use local Claude CLI or Anthropic API
 
 ## Requirements
 
 - Node.js 18+
 - Claude Code or Anthropic API key
-- Test framework (Jest, Vitest, pytest, PHPUnit, or Go 1.24+)
 
 ## Quick Start
 
-### 1. Install TDD Guard
+### 1. Install Todo Guard
 
 ```bash
-npm install -g tdd-guard
+npm install -g todo-guard
 ```
 
-### 2. Add Test Reporter
+### 2. Configure Claude Code Hook
 
-TDD Guard needs to capture test results from your test runner. Choose your language below:
+Add Todo Guard as a hook in your Claude Code configuration. Create or update your `.claude/hooks.json`:
 
-<details>
-<summary><b>JavaScript/TypeScript</b></summary>
-
-Choose your test runner:
-
-#### Vitest
-
-Install the [tdd-guard-vitest](https://www.npmjs.com/package/tdd-guard-vitest) reporter in your project:
-
-```bash
-npm install --save-dev tdd-guard-vitest
-```
-
-Add to your `vitest.config.ts`:
-
-```typescript
-import { defineConfig } from 'vitest/config'
-import { VitestReporter } from 'tdd-guard-vitest'
-
-export default defineConfig({
-  test: {
-    reporters: [
-      'default',
-      new VitestReporter('/Users/username/projects/my-app'),
-    ],
-  },
-})
-```
-
-#### Jest
-
-Install the [tdd-guard-jest](https://www.npmjs.com/package/tdd-guard-jest) reporter in your project:
-
-```bash
-npm install --save-dev tdd-guard-jest
-```
-
-Add to your `jest.config.ts`:
-
-```typescript
-import type { Config } from 'jest'
-
-const config: Config = {
-  reporters: [
-    'default',
-    [
-      'tdd-guard-jest',
-      {
-        projectRoot: '/Users/username/projects/my-app',
-      },
-    ],
-  ],
+```json
+{
+  "hooks": [
+    {
+      "command": "todo-guard",
+      "events": [
+        "PreToolUse",
+        "PostToolUse",
+        "UserPromptSubmit",
+        "SessionStart"
+      ]
+    }
+  ]
 }
-
-export default config
 ```
 
-**Note:** For both Vitest and Jest, specify the project root path when your test config is not at the project root (e.g., in workspaces or monorepos). This ensures TDD Guard can find the test results. See the reporter configuration docs for more details:
+### 3. Start Using
 
-- [Vitest configuration](reporters/vitest/README.md#configuration)
-- [Jest configuration](reporters/jest/README.md#configuration)
+That's it! Todo Guard will now monitor your todo operations and ensure accountability:
 
-</details>
+- ✅ **Allowed**: Simple tasks completing directly (pending → completed)
+- ✅ **Allowed**: Complex tasks with progression (pending → in_progress → completed)
+- ❌ **Blocked**: Complex tasks jumping to completed without progression
+- ❌ **Blocked**: Multiple todos marked complete simultaneously without justification
 
-<details>
-<summary><b>Python (pytest)</b></summary>
+## Commands
 
-Install the [tdd-guard-pytest](https://pypi.org/project/tdd-guard-pytest) reporter:
+Control Todo Guard during your Claude Code session:
 
-```bash
-pip install tdd-guard-pytest
-```
+- `todo-guard on` - Enable Todo Guard validation
+- `todo-guard off` - Disable Todo Guard validation
 
-Configure the project root in your `pyproject.toml`:
+## How It Works
 
-```toml
-[tool.pytest.ini_options]
-tdd_guard_project_root = "/Users/username/projects/my-app"
-```
+Todo Guard intercepts Claude Code's TodoWrite operations and analyzes completion patterns:
 
-**Note:** Specify the project root path when your tests run from a subdirectory or in a monorepo setup. This ensures TDD Guard can find the test results. See the [pytest reporter configuration](reporters/pytest/README.md#configuration) for alternative configuration methods (pytest.ini, setup.cfg).
-
-</details>
-
-<details>
-<summary><b>PHP (PHPUnit)</b></summary>
-
-Install the tdd-guard/phpunit reporter in your project:
-
-```bash
-composer require --dev tdd-guard/phpunit
-```
-
-For PHPUnit 9.x, add to your `phpunit.xml`:
-
-```xml
-<listeners>
-    <listener class="TddGuard\PHPUnit\TddGuardListener">
-        <arguments>
-            <string>/Users/username/projects/my-app</string>
-        </arguments>
-    </listener>
-</listeners>
-```
-
-For PHPUnit 10.x/11.x/12.x, add to your `phpunit.xml`:
-
-```xml
-<extensions>
-    <bootstrap class="TddGuard\PHPUnit\TddGuardExtension">
-        <parameter name="projectRoot" value="/Users/username/projects/my-app"/>
-    </bootstrap>
-</extensions>
-```
-
-**Note:** Specify the project root path when your phpunit.xml is not at the project root (e.g., in subdirectories or monorepos). This ensures TDD Guard can find the test results. The reporter saves results to `.claude/tdd-guard/data/test.json`.
-
-</details>
-
-<details>
-<summary><b>Go</b></summary>
-
-Install the tdd-guard-go reporter:
-
-```bash
-go install github.com/nizos/tdd-guard/reporters/go/cmd/tdd-guard-go@latest
-```
-
-Pipe `go test -json` output to the reporter:
-
-```bash
-go test -json ./... 2>&1 | tdd-guard-go -project-root /Users/username/projects/my-app
-```
-
-For Makefile integration:
-
-```makefile
-test:
-	go test -json ./... 2>&1 | tdd-guard-go -project-root /Users/username/projects/my-app
-```
-
-**Note:** The reporter acts as a filter that passes test output through unchanged while capturing results for TDD Guard. See the [Go reporter configuration](reporters/go/README.md#configuration) for more details.
-
-</details>
-
-### 3. Configure Claude Code Hook
-
-Use the `/hooks` command in Claude Code:
-
-1. Type `/hooks` in Claude Code
-2. Select `PreToolUse - Before tool execution`
-3. Choose `+ Add new matcher...` and enter: `Write|Edit|MultiEdit|TodoWrite`
-4. Select `+ Add new hook...` and enter: `tdd-guard`
-5. Choose where to save (Project settings recommended)
+1. **Pattern Recognition**: Identifies todos changing to "completed" status
+2. **Progression Analysis**: Checks if complex tasks went through proper states
+3. **Context Evaluation**: Considers task complexity and previous todo states
+4. **Decision Making**: Blocks suspicious patterns, allows legitimate completions
 
 ## Configuration
 
-**Quick Setup:**
+### Ignore Patterns
 
-- [Toggle commands](docs/quick-commands.md) - Enable/disable with `tdd-guard on/off`
-- [Session clearing](docs/session-clearing.md) - Automatic cleanup on new sessions
-- [Ignore patterns](docs/ignore-patterns.md) - Control which files are validated
+Create `.claude/todo-guard-ignore` to exclude files from validation:
 
-**Advanced:**
+```
+# Ignore generated files
+dist/**
+node_modules/**
+*.generated.ts
 
-- [ESLint integration](docs/linting.md) - Automated refactoring support
-- [AI Models](docs/ai-model.md) - Switch between Claude CLI and Anthropic API
-- [All Settings](docs/configuration.md) - Complete configuration reference
+# Ignore documentation
+docs/**
+*.md
+```
 
-**Note:** If TDD Guard can't find Claude, see [Claude Binary Setup](docs/claude-binary.md).
+### Model Configuration
 
-## Security Notice
+Configure which AI model to use in `.claude/config.json`:
 
-As stated in the [Claude Code Hooks documentation](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations):
+```json
+{
+  "todoGuard": {
+    "modelType": "claude-cli",
+    "anthropicApiKey": "your-api-key-here"
+  }
+}
+```
 
-> Hooks execute shell commands with your full user permissions without confirmation. You are responsible for ensuring your hooks are safe and secure. Anthropic is not liable for any data loss or system damage resulting from hook usage.
+## Validation Logic
 
-We share this information for transparency. Please read the full [security considerations](https://docs.anthropic.com/en/docs/claude-code/hooks#security-considerations) before using hooks.
+Todo Guard uses pattern-based validation focused on accountability:
 
-TDD Guard runs with your user permissions and has access to your file system. We follow security best practices including automated security scanning, dependency audits, and test-driven development. Review the source code if you have security concerns.
+### ✅ Approved Patterns
 
-## Roadmap
+- Direct completion of simple tasks ("Fix typo in README")
+- Research/planning tasks marked complete
+- Tasks that progressed through in_progress state
+- Adding new todos to the list
 
-- Add support for more testing frameworks (Mocha, unittest, etc.)
-- Add support for additional programming languages (Ruby, Rust, Java, C#, etc.)
-- Encourage meaningful refactoring opportunities when tests are green
-- Add support for multiple concurrent sessions per project
+### ❌ Blocked Patterns
+
+- Complex implementation tasks jumping straight to completed
+- Bulk marking of multiple todos as complete
+- Unrealistic completion timing for task scope
+- Gaming patterns (create + immediately complete)
 
 ## Development
 
-- [Development Guide](DEVELOPMENT.md) - Setup instructions and development guidelines
-- [Architecture Decision Records](docs/adr/) - Technical design decisions and rationale
-
-## Contributing
-
-Contributions are welcome! Feel free to submit issues and pull requests.
-
-**Contributors:**
-
-- Python/pytest support: [@Durafen](https://github.com/Durafen)
-- PHP/PHPUnit support: [@wazum](https://github.com/wazum)
+See [DEVELOPMENT.md](DEVELOPMENT.md) for development setup, testing, and contribution guidelines.
 
 ## License
 
-[MIT](LICENSE)
+MIT - see [LICENSE](LICENSE) file for details.

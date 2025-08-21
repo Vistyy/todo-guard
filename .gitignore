@@ -40,8 +40,8 @@ test-results
 # Other
 TODO.md
 
-# TDD Guard data directory
-.claude/tdd-guard/
+# Todo Guard data directory
+.claude/todo-guard/
 
 # Ignore .claude directories in subdirectories (not at project root)
 **/.claude/

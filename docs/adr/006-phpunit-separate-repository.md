@@ -6,9 +6,9 @@ Accepted
 
 ## Context
 
-We received a contribution for a PHPUnit reporter that allows PHP developers to use TDD Guard with their PHPUnit test suites. However, when attempting to publish this package to Packagist (the PHP package registry), we encountered a fundamental limitation: Packagist requires the `composer.json` file to be at the root of the repository.
+We received a contribution for a PHPUnit reporter that allows PHP developers to use Todo Guard with their PHPUnit test suites. However, when attempting to publish this package to Packagist (the PHP package registry), we encountered a fundamental limitation: Packagist requires the `composer.json` file to be at the root of the repository.
 
-TDD Guard is organized as a monorepo containing:
+Todo Guard is organized as a monorepo containing:
 
 - The main CLI tool (TypeScript/npm)
 - Vitest reporter (TypeScript/npm)
@@ -20,7 +20,7 @@ This structure works well for npm (which supports workspaces) and PyPI (which ca
 ### Options Considered
 
 1. **Move composer.json to repository root**
-   - Would make the entire TDD Guard project appear as a PHP package
+   - Would make the entire Todo Guard project appear as a PHP package
    - Users would download all code (TypeScript, Python, etc.) just to get the PHPUnit reporter
    - Conflicts with the project's primary identity as a CLI tool
 
@@ -41,12 +41,12 @@ This structure works well for npm (which supports workspaces) and PyPI (which ca
 
 ## Decision
 
-We will create a separate repository (`tdd-guard-phpunit`) that mirrors the `reporters/phpunit` directory from the main repository. This mirror will be automatically synchronized using GitHub Actions whenever changes are pushed to the PHPUnit reporter in the main repository.
+We will create a separate repository (`todo-guard-phpunit`) that mirrors the `reporters/phpunit` directory from the main repository. This mirror will be automatically synchronized using GitHub Actions whenever changes are pushed to the PHPUnit reporter in the main repository.
 
 ### Implementation Plan
 
 1. **Initial Setup**
-   - Create `tdd-guard-phpunit` repository
+   - Create `todo-guard-phpunit` repository
    - Use `git subtree split` to extract PHPUnit reporter history
    - Push to new repository maintaining commit history
    - Submit to Packagist for PHP package distribution
@@ -66,7 +66,7 @@ We will create a separate repository (`tdd-guard-phpunit`) that mirrors the `rep
 
 ### Positive
 
-- **Standard installation**: `composer require --dev tdd-guard/phpunit`
+- **Standard installation**: `composer require --dev todo-guard/phpunit`
 - **Packagist compatibility**: Full integration with PHP ecosystem
 - **Automated updates**: No manual synchronization needed
 - **Clean history**: Git subtree preserves relevant commit history

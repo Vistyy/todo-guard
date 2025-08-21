@@ -45,7 +45,7 @@ describe('AnthropicApi', () => {
   })
 
   test('passes prompt as user message', async () => {
-    const prompt = 'Does this follow TDD?'
+    const prompt = 'Does this follow TODO?'
     const call = await sut.askAndGetCall(prompt)
     expect(call.messages).toEqual([
       {

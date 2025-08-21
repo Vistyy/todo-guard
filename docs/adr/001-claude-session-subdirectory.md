@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The TDD Guard validation system creates a new Claude session for each validation operation when running `claude` commands. This results in session list clutter and makes it difficult to track the actual development sessions.
+The Todo Guard validation system creates a new Claude session for each validation operation when running `claude` commands. This results in session list clutter and makes it difficult to track the actual development sessions.
 
 We considered two approaches:
 

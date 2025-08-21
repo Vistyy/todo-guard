@@ -1,17 +1,17 @@
-# TDD Guard
+# Todo Guard
 
 ## Project Goal
 
-TDD Guard is a Claude Code hook that enforces Test-Driven Development by intercepting file operations.
-When Claude Code attempts to edit or write files, TDD Guard:
+Todo Guard is a Claude Code hook that enforces todo completion accountability by intercepting TodoWrite operations.
+When Claude Code attempts to mark todos as completed, Todo Guard:
 
-1. **Captures**: Intercepts Edit, MultiEdit, and Write operations
-2. **Analyzes**: Examines test results, file paths, and code changes
-3. **Validates**: Checks TDD compliance using an AI model
-4. **Blocks**: Prevents operations that skip tests or over-implement
-5. **Guides**: Explains violations and suggests corrections
+1. **Captures**: Intercepts TodoWrite operations that modify todo status
+2. **Analyzes**: Examines todo progression patterns and completion claims
+3. **Validates**: Checks accountability using pattern-based AI analysis
+4. **Blocks**: Prevents suspicious completion patterns without proper progression
+5. **Guides**: Explains violations and suggests honest progress tracking
 
-This automated enforcement maintains code quality without cluttering prompts with TDD reminders.
+This automated accountability maintains honest task management without cluttering prompts with reminders.
 
 ## Development Workflow
 
@@ -30,12 +30,12 @@ The codebase is organized with core functionality in src/ and language-specific 
 
 ```
 reporters/                        # Language-specific test reporters
-├── go/                           # tdd-guard-go - Go test reporter
-├── jest/                         # tdd-guard-jest - Jest reporter (npm)
-├── phpunit/                      # tdd-guard/phpunit - PHPUnit reporter (composer)
-├── pytest/                       # tdd-guard-pytest - Pytest reporter (pip)
+├── go/                           # todo-guard-go - Go test reporter
+├── jest/                         # todo-guard-jest - Jest reporter (npm)
+├── phpunit/                      # todo-guard/phpunit - PHPUnit reporter (composer)
+├── pytest/                       # todo-guard-pytest - Pytest reporter (pip)
 ├── test/                         # Shared test artifacts and integration tests
-└── vitest/                       # tdd-guard-vitest - Vitest reporter (npm)
+└── vitest/                       # todo-guard-vitest - Vitest reporter (npm)
 
 src/                              # Main CLI application
 ├── cli/                          # Hook entry point and context builder
@@ -47,10 +47,10 @@ src/                              # Main CLI application
 ├── processors/                   # Test result and lint processing
 ├── providers/                    # Model and linter client factories
 ├── storage/                      # Storage abstractions
-├── validation/                   # TDD principle validation
+├── validation/                   # TODO principle validation
 │   ├── validator.ts              # Sends context to AI model and parses response
 │   ├── context/                  # Formats operations for AI validation
-│   ├── prompts/                  # TDD validation rules and AI instructions
+│   ├── prompts/                  # TODO validation rules and AI instructions
 │   └── models/                   # Claude CLI and Anthropic API clients
 └── index.ts                      # Package entry point
 
@@ -60,7 +60,7 @@ docs/                             # Documentation (ADRs, configuration, etc.)
 
 ### Architecture
 
-TDD Guard is organized as a TypeScript project with integrated language-specific reporters:
+Todo Guard is organized as a TypeScript project with integrated language-specific reporters:
 
 - **src/**: Core functionality including contracts, config, storage, and validation
 - **reporters/**: Language-specific test reporters (go, jest, phpunit, pytest, vitest)

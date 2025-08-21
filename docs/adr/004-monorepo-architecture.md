@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-TDD Guard originally published a single package to both npm and PyPI, with all test framework reporters mixed together in the src directory. This created several problems:
+Todo Guard originally published a single package to both npm and PyPI, with all test framework reporters mixed together in the src directory. This created several problems:
 
 - **Language mixing** - JavaScript and Python code in the same package
 - **Publishing complexity** - Single codebase published to multiple package registries
@@ -21,19 +21,19 @@ We considered several approaches:
 
 ## Decision
 
-We will restructure TDD Guard as a monorepo using npm workspaces, with each reporter as a separate package.
+We will restructure Todo Guard as a monorepo using npm workspaces, with each reporter as a separate package.
 
 The new structure:
 
 ```
-tdd-guard/                  # Main CLI package (npm)
+todo-guard/                  # Main CLI package (npm)
 ├── src/                    # Core functionality and shared code
 └── package.json
 
 reporters/
-├── vitest/                 # tdd-guard-vitest package (npm)
+├── vitest/                 # todo-guard-vitest package (npm)
 │   └── package.json
-└── pytest/                 # tdd-guard-pytest package (PyPI)
+└── pytest/                 # todo-guard-pytest package (PyPI)
     └── pyproject.toml
 ```
 
@@ -41,7 +41,7 @@ Implementation details:
 
 - Main package exports shared functionality (Storage, Config, contracts)
 - Each reporter is a standalone package with its own version
-- Vitest reporter imports shared code from 'tdd-guard' package
+- Vitest reporter imports shared code from 'todo-guard' package
 - Python reporter is self-contained (no JavaScript dependencies)
 
 ## Consequences

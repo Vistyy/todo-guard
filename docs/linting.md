@@ -1,11 +1,11 @@
 # Linting and Refactoring Support
 
-TDD Guard can optionally check code quality during the refactoring phase (when tests are green) using ESLint.
+Todo Guard can optionally check code quality during the refactoring phase (when tests are green) using ESLint.
 When issues are detected, the coding agent will be prompted to fix them.
 
 ## Why Use Refactoring Support?
 
-During the TDD green phase, the coding agent may:
+During the TODO green phase, the coding agent may:
 
 - Clean up implementation code
 - Extract methods or constants
@@ -42,7 +42,7 @@ The refactoring support helps by:
    3. Choose `+ Add new matcher...`
    4. Enter: `Write|Edit|MultiEdit`
    5. Select `+ Add new hook...`
-   6. Enter command: `tdd-guard`
+   6. Enter command: `todo-guard`
    7. Choose where to save (same location as your PreToolUse hook)
 
    ### Manual Configuration
@@ -58,7 +58,7 @@ The refactoring support helps by:
            "hooks": [
              {
                "type": "command",
-               "command": "tdd-guard"
+               "command": "todo-guard"
              }
            ]
          }
@@ -72,11 +72,11 @@ The refactoring support helps by:
 When enabled:
 
 1. After any file modification (Edit, MultiEdit, Write)
-2. TDD Guard runs ESLint on modified files
+2. Todo Guard runs ESLint on modified files
 3. If issues are found, the coding agent receives a notification
 4. The agent will then fix the identified issues
 
-Without `LINTER_TYPE=eslint`, TDD Guard skips all linting operations.
+Without `LINTER_TYPE=eslint`, Todo Guard skips all linting operations.
 
 **Tip**: Configure ESLint with complexity rules (e.g., `complexity`, `max-depth`) and the SonarJS plugin to encourage meaningful refactoring.
 These rules help identify code that could benefit from simplification during the green phase.

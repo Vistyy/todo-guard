@@ -9,7 +9,7 @@ import { Context } from '../contracts/types/Context'
 
 const BLOCK_RESULT = {
   decision: 'block',
-  reason: 'TDD violation',
+  reason: 'TODO violation',
 } as const
 
 const WRITE_HOOK_DATA = testData.writeOperation()
@@ -68,7 +68,6 @@ describe('processHookData', () => {
     // Pre-populate storage
     await sut.populateStorage({
       modifications: 'existing modifications',
-      test: 'existing test',
       todo: 'existing todo',
     })
 
@@ -82,21 +81,12 @@ describe('processHookData', () => {
       modifications: JSON.parse(actualContext!.modifications),
     }).toEqual({
       modifications: EDIT_HOOK_DATA,
-      test: 'existing test',
       todo: 'existing todo',
-      lint: {
-        errorCount: 0,
-        warningCount: 0,
-        hasIssues: false,
-        totalIssues: 0,
-        issuesByFile: new Map(),
-        summary: 'No lint data available'
-      }
     })
     expect(result).toEqual(BLOCK_RESULT)
   })
 
-  it('should not call validator for TodoWrite operations', async () => {
+  it('should call validator for TodoWrite operations', async () => {
     // Pre-populate storage with existing edits that might cause false blocks
     await sut.populateStorage({
       modifications: 'existing modifications that might trigger validation',
@@ -104,8 +94,8 @@ describe('processHookData', () => {
 
     const result = await sut.process(TODO_WRITE_HOOK_DATA)
 
-    expect(sut.validatorHasBeenCalled()).toBe(false)
-    expect(result).toEqual(defaultResult)
+    expect(sut.validatorHasBeenCalled()).toBe(true)
+    expect(result).toEqual(BLOCK_RESULT)
   })
 
   it('should handle hook data with invalid schema gracefully', async () => {
@@ -201,109 +191,6 @@ describe('processHookData', () => {
     })
   })
 
-  describe('PreToolUse lint notification', () => {
-    it('should block when tests pass, lint issues exist, and not yet notified', async () => {
-      // Setup: passing tests
-      await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
-      })
-      
-      // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
-
-      const result = await sut.process(EDIT_HOOK_DATA)
-
-      expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Code quality issues detected')
-      // Should not call the main validator
-      expect(sut.validatorHasBeenCalled()).toBe(false)
-    })
-
-    it('should not block when tests are failing (red phase)', async () => {
-      // Setup: failing tests
-      await sut.populateStorage({
-        test: JSON.stringify(testData.failedTestResults())
-      })
-      
-      // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
-
-      const result = await sut.process(EDIT_HOOK_DATA)
-
-      // Should proceed to normal validation
-      expect(result).toEqual(BLOCK_RESULT)
-      expect(sut.validatorHasBeenCalled()).toBe(true)
-    })
-
-    it('should not block when no lint issues exist', async () => {
-      // Setup: passing tests
-      await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
-      })
-      
-      // Setup: no lint issues
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithoutErrors({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
-
-      const result = await sut.process(EDIT_HOOK_DATA)
-
-      // Should proceed to normal validation
-      expect(result).toEqual(BLOCK_RESULT)
-      expect(sut.validatorHasBeenCalled()).toBe(true)
-    })
-
-    it('should not block when already notified', async () => {
-      // Setup: passing tests
-      await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
-      })
-      
-      // Setup: lint issues with notification flag true
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: true
-        })
-      ))
-
-      const result = await sut.process(EDIT_HOOK_DATA)
-
-      // Should proceed to normal validation
-      expect(result).toEqual(BLOCK_RESULT)
-      expect(sut.validatorHasBeenCalled()).toBe(true)
-    })
-
-    it('should set notification flag after blocking', async () => {
-      // Setup: passing tests
-      await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults())
-      })
-      
-      // Setup: lint issues with notification flag false
-      await sut.storage.saveLint(JSON.stringify(
-        testData.lintDataWithError({
-          hasNotifiedAboutLintIssues: false
-        })
-      ))
-
-      await sut.process(EDIT_HOOK_DATA)
-
-      // Check that the flag was updated
-      const savedLint = await sut.storage.getLint()
-      const parsedLint = JSON.parse(savedLint!)
-      expect(parsedLint.hasNotifiedAboutLintIssues).toBe(true)
-    })
-  })
 
   describe('SessionStart handling', () => {
     let result: ValidationResult
@@ -340,12 +227,12 @@ describe('processHookData', () => {
   })
 
   describe('UserPromptHandler integration', () => {
-    it('should enable TDD Guard when user sends "tdd-guard on"', async () => {
+    it('should enable Todo Guard when user sends "todo-guard on"', async () => {
       const storage = new MemoryStorage()
       const guardManager = new GuardManager(storage)
       await guardManager.disable() // Ensure it starts disabled
       const userPromptHandler = new UserPromptHandler(guardManager)
-      const userPromptData = testData.userPromptSubmit({ prompt: 'tdd-guard on' })
+      const userPromptData = testData.userPromptSubmit({ prompt: 'todo-guard on' })
       
       await processHookData(JSON.stringify(userPromptData), { 
         userPromptHandler 
@@ -354,12 +241,12 @@ describe('processHookData', () => {
       expect(await guardManager.isEnabled()).toBe(true)
     })
 
-    it('should disable TDD Guard when user sends "tdd-guard off"', async () => {
+    it('should disable Todo Guard when user sends "todo-guard off"', async () => {
       const storage = new MemoryStorage()
       const guardManager = new GuardManager(storage)
       await guardManager.enable() // Ensure it starts enabled
       const userPromptHandler = new UserPromptHandler(guardManager)
-      const userPromptData = testData.userPromptSubmit({ prompt: 'tdd-guard off' })
+      const userPromptData = testData.userPromptSubmit({ prompt: 'todo-guard off' })
       
       await processHookData(JSON.stringify(userPromptData), { 
         userPromptHandler 
@@ -368,7 +255,7 @@ describe('processHookData', () => {
       expect(await guardManager.isEnabled()).toBe(false)
     })
 
-    it('should not proceed with validation when TDD Guard is disabled', async () => {
+    it('should not proceed with validation when Todo Guard is disabled', async () => {
       const storage = new MemoryStorage()
       const guardManager = new GuardManager(storage)
       await guardManager.disable() // Ensure guard is disabled
@@ -388,7 +275,7 @@ describe('processHookData', () => {
       expect(result).toEqual(defaultResult)
     })
 
-    it('should proceed with validation when TDD Guard is enabled', async () => {
+    it('should proceed with validation when Todo Guard is enabled', async () => {
       const storage = new MemoryStorage()
       const guardManager = new GuardManager(storage)
       await guardManager.enable() // Ensure guard is enabled
@@ -421,7 +308,7 @@ function createTestProcessor() {
   
   // Helper to process hook data
   const process = async (hookData: unknown): Promise<ValidationResult> => {
-    // Ensure TDD Guard is enabled for tests unless explicitly disabled
+    // Ensure Todo Guard is enabled for tests unless explicitly disabled
     await guardManager.enable()
     
     return processHookData(JSON.stringify(hookData), {

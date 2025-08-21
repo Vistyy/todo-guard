@@ -1,5 +1,5 @@
 {
-  "name": "TDD Guard Development",
+  "name": "Todo Guard Development",
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
