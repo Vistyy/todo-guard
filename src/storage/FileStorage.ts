@@ -14,6 +14,7 @@ export class FileStorage implements Storage {
       modifications: this.config.modificationsFilePath,
       lint: this.config.lintFilePath,
       config: this.config.configFilePath,
+      attempts: this.config.attemptsFilePath,
     }
   }
 
@@ -54,6 +55,10 @@ export class FileStorage implements Storage {
     await this.save('config', content)
   }
 
+  async saveAttempts(content: string): Promise<void> {
+    await this.save('attempts', content)
+  }
+
   async getTest(): Promise<string | null> {
     return this.get('test')
   }
@@ -72,6 +77,10 @@ export class FileStorage implements Storage {
 
   async getConfig(): Promise<string | null> {
     return this.get('config')
+  }
+
+  async getAttempts(): Promise<string | null> {
+    return this.get('attempts')
   }
 
   async clearTransientData(): Promise<void> {

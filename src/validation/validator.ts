@@ -15,15 +15,89 @@ export async function validator(
 ): Promise<ValidationResult> {
   try {
     const prompt = generateDynamicContext(context)
+
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const logPath = 'tmp/todo-guard-debug.log'
+      const dir = path.dirname(logPath)
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+      }
+      fs.appendFileSync(
+        logPath,
+        `[${new Date().toISOString()}] Sending prompt to AI model\n`
+      )
+    } catch {
+      // Ignore debug logging errors
+    }
+
     const response = await modelClient.ask(prompt)
+
+    try {
+      const fs2 = await import('fs')
+      const path2 = await import('path')
+      const logPath2 = 'tmp/todo-guard-debug.log'
+      const dir2 = path2.dirname(logPath2)
+      if (!fs2.existsSync(dir2)) {
+        fs2.mkdirSync(dir2, { recursive: true })
+      }
+      fs2.appendFileSync(
+        logPath2,
+        `[${new Date().toISOString()}] AI response: ${JSON.stringify(response)}\n`
+      )
+    } catch {
+      // Ignore debug logging errors
+    }
+
     return parseModelResponse(response)
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error'
-    const reason =
-      errorMessage === 'No response from model'
-        ? 'No response from model, try again'
-        : `Error during validation: ${errorMessage}`
+    // Comprehensive error handling with different error types
+    let errorMessage: string
+    let errorCode: string
+
+    if (error instanceof Error) {
+      errorMessage = error.message
+      errorCode = error.name
+    } else if (typeof error === 'string') {
+      errorMessage = error
+      errorCode = 'StringError'
+    } else {
+      errorMessage = 'Unknown error occurred'
+      errorCode = 'UnknownError'
+    }
+
+    try {
+      const fs3 = await import('fs')
+      const path3 = await import('path')
+      const logPath3 = 'tmp/todo-guard-debug.log'
+      const dir3 = path3.dirname(logPath3)
+      if (!fs3.existsSync(dir3)) {
+        fs3.mkdirSync(dir3, { recursive: true })
+      }
+      fs3.appendFileSync(
+        logPath3,
+        `[${new Date().toISOString()}] Validation error [${errorCode}]: ${errorMessage}\n`
+      )
+    } catch {
+      // Ignore debug logging errors
+    }
+
+    // Specific error handling based on error type
+    const reason = ((): string => {
+      switch (errorCode) {
+        case 'TypeError':
+          return 'Type error during validation - check input format'
+        case 'SyntaxError':
+          return 'Syntax error in validation input'
+        case 'NetworkError':
+          return 'Network error connecting to model - try again'
+        default:
+          return errorMessage === 'No response from model'
+            ? 'No response from model, try again'
+            : `Error during validation: ${errorMessage}`
+      }
+    })()
 
     return {
       decision: 'block',
@@ -33,9 +107,17 @@ export async function validator(
 }
 
 function parseModelResponse(response: string): ValidationResult {
-  const jsonString = extractJsonString(response)
-  const parsed = JSON.parse(jsonString)
-  return normalizeValidationResult(parsed)
+  try {
+    const jsonString = extractJsonString(response)
+    const parsed = JSON.parse(jsonString)
+    return normalizeValidationResult(parsed)
+  } catch {
+    // If JSON parsing fails, create a default blocking response
+    return {
+      decision: 'block',
+      reason: `Todo Guard verification: Please confirm that you actually completed the todo(s) marked as done. Describe what specific work you accomplished.`,
+    }
+  }
 }
 
 function extractJsonString(response: string): string {

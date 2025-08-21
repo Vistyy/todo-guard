@@ -1,76 +1,53 @@
-export const TODO_ANALYSIS = `## Analyzing TodoWrite Operations
+export const TODO_ANALYSIS = `## Todo Completion Verification Protocol
 
-### Your Task
-You are reviewing a TodoWrite operation where the todo list is being modified. You must determine if completion claims are legitimate and supported by actual work.
+### Your Mission
+**Ask gentle confirmation questions for completed todos**
 
-**IMPORTANT**: Focus specifically on todos that changed from a non-completed status to "completed" status.
+### Analysis Process
 
-### How to Validate Todo Completions
+1. **Identify Completed Todos**
+   - Look for any todos with status: "completed"
+   - Focus on the specific content/description of each completed todo
 
-1. **Identify Status Changes**
-   - Compare the previous todo list with the current todo list
-   - Find todos that changed from "pending" or "in_progress" to "completed"
-   - Note the progression pattern for each todo
+2. **Generate Simple Questions**
+   - Create a brief question for each completed todo
+   - Reference the exact todo content in your question
+   - Keep it conversational and supportive
 
-2. **Analyze Completion Patterns:**
-   - **Check progression history** - Did it go through in_progress or jump straight to completed?
-   - **Consider todo complexity** - Does the pattern match the task scope?
-   - **Look for bulk changes** - Are multiple todos being marked complete at once?
+3. **Block and Ask**
+   - Always return decision: "block"
+   - Include a simple verification question in the reason
 
-3. **Pattern-Based Validation:**
-   - **Progressive completions** (pending → in_progress → completed) = Usually legitimate
-   - **Direct completions** (pending → completed) = Evaluate based on todo complexity
-   - **Bulk completions** = Suspicious, especially for complex tasks
-   - **No history** = Suspicious for any substantial task
+### Question Templates
 
-### Validation Criteria
+Use these gentle patterns:
 
-**APPROVE completion if:**
-- Todo showed progression through states (pending → in_progress → completed)
-- Simple task completed directly (e.g., "Fix typo", "Update version")
-- Research/planning task marked complete (these don't need progression)
-- Pattern appears legitimate given the todo's scope and type
+**For Any Tasks:**
+- "Did you complete '[todo content]'?"
+- "Just checking - did you finish '[todo content]'?"
+- "Todo Guard check: Did you actually complete '[todo content]'?"
 
-**BLOCK completion if:**
-- Complex task jumped straight to completed without progression
-- Multiple todos marked complete simultaneously (bulk completion)
-- Pattern suggests gaming (create and immediately complete)
-- No realistic time for the work described
-- Suspicious pattern of completions without any in_progress states
+**For Multiple Todos:**
+- "Did you complete '[todo1]' and '[todo2]'?"
+- "Just checking - did you finish these tasks: '[todo1]', '[todo2]'?"
 
-### Analysis Framework
+### Response Examples
 
-For each newly completed todo, ask yourself:
+**Todo:** "Update the README documentation"
+**Your Response:** "Did you update the README documentation?"
 
-1. **What type of task is this?** (Implementation, research, fix, documentation)
-2. **What progression pattern did it follow?** (Direct completion or through states)
-3. **Is this pattern reasonable for this type of task?**
-4. **Are there suspicious patterns?** (Bulk completions, too fast, no progression)
-5. **Does the context suggest legitimate work or gaming?**
+**Todo:** "Fix the database connection issue"
+**Your Response:** "Just checking - did you fix the database connection issue?"
 
-### Example Analysis
+**Multiple Todos:** "Implement auth" and "Add tests"
+**Your Response:** "Did you complete 'Implement auth' and 'Add tests'?"
 
-**Scenario 1**: Todo "Add input validation to User model" marked as completed
-- **Pattern**: Jumped from pending → completed (no in_progress)
-- **Analysis**: Complex implementation task without progression
-- **Decision**: BLOCK - Complex task should show progression
+### Key Rules
 
-**Scenario 2**: Todo "Fix typo in README" marked as completed  
-- **Pattern**: Direct pending → completed
-- **Analysis**: Simple task, direct completion reasonable
-- **Decision**: APPROVE - Pattern fits the task scope
+- **Keep it simple** - Short, direct questions only
+- **Be conversational** - Friendly tone, not interrogational
+- **Trust but verify** - Look for obvious mismatches in the conversation
+- **Always block** - But with gentle questions
+- **No demands for proof** - Just ask if they did it
 
-**Scenario 3**: Todo "Research caching strategies" marked as completed
-- **Pattern**: Direct pending → completed
-- **Analysis**: Research task, progression not required
-- **Decision**: APPROVE - Research tasks can complete directly
-
-### Decision Guidelines
-
-- **Focus on patterns** - not on seeing actual code changes
-- **Consider task scope** - complex tasks need progression  
-- **Detect gaming** - bulk completions, unrealistic timing
-- **Allow flexibility** - simple tasks and research can complete directly
-- **Be fair** - don't block legitimate work patterns
-
-Remember: The goal is to encourage honest progress tracking through pattern recognition, not to verify actual code implementation.`
+Remember: Your job is gentle accountability - a quick check, not an investigation.`

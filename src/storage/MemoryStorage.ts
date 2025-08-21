@@ -23,6 +23,10 @@ export class MemoryStorage implements Storage {
     this.store.set('config', content)
   }
 
+  async saveAttempts(content: string): Promise<void> {
+    this.store.set('attempts', content)
+  }
+
   async getTest(): Promise<string | null> {
     return this.store.get('test') ?? null
   }
@@ -41,6 +45,10 @@ export class MemoryStorage implements Storage {
 
   async getConfig(): Promise<string | null> {
     return this.store.get('config') ?? null
+  }
+
+  async getAttempts(): Promise<string | null> {
+    return this.store.get('attempts') ?? null
   }
 
   async clearTransientData(): Promise<void> {

@@ -34,8 +34,8 @@ export type SessionStart = z.infer<typeof SessionStartSchema>
 export const TodoSchema = z.object({
   content: z.string(),
   status: z.enum(['pending', 'in_progress', 'completed']),
-  priority: z.enum(['high', 'medium', 'low']),
-  id: z.string(),
+  priority: z.enum(['high', 'medium', 'low']).optional(),
+  id: z.string().optional(),
 })
 
 export type Todo = z.infer<typeof TodoSchema>

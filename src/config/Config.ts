@@ -6,6 +6,7 @@ const TODOS_FILENAME = 'todos.json'
 const MODIFICATIONS_FILENAME = 'modifications.json'
 const LINT_FILENAME = 'lint.json'
 const CONFIG_FILENAME = 'config.json'
+const ATTEMPTS_FILENAME = 'attempts.json'
 
 export class Config {
   static readonly DEFAULT_DATA_DIR = '.claude/todo-guard/data' as const
@@ -81,6 +82,10 @@ export class Config {
 
   get configFilePath(): string {
     return path.join(this.dataDir, CONFIG_FILENAME)
+  }
+
+  get attemptsFilePath(): string {
+    return path.join(this.dataDir, ATTEMPTS_FILENAME)
   }
 
   private getLinterType(options?: ConfigOptions): string | undefined {
