@@ -6,11 +6,11 @@ import os from 'os'
 import { FileStorage } from '../storage/FileStorage'
 import { Config } from '../config/Config'
 import { ModelClientProvider } from '../providers/ModelClientProvider'
-import { run } from './tdd-guard'
+import { run } from './todo-guard'
 import { testData } from '@testUtils'
 
-describe('tdd-guard CLI', () => {
-  const cliPath = path.join(__dirname, 'tdd-guard.ts')
+describe('todo-guard CLI', () => {
+  const cliPath = path.join(__dirname, 'todo-guard.ts')
 
   describe('CLI Behavior', () => {
     test('has shebang for direct execution', async () => {
@@ -46,7 +46,7 @@ describe('tdd-guard CLI', () => {
 
     beforeEach(async () => {
       process.env = { ...originalEnv }
-      projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'tdd-guard-test-'))
+      projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'todo-guard-test-'))
       testConfig = new Config({ projectRoot })
       storage = new FileStorage(testConfig)
       modelProvider = testData.modelClientProvider()
@@ -131,7 +131,7 @@ async function pathExists(filePath: string): Promise<boolean> {
 async function runCli(
   input: string
 ): Promise<{ exitCode: number; stderr: string; stdout: string }> {
-  const cliPath = path.join(__dirname, 'tdd-guard.ts')
+  const cliPath = path.join(__dirname, 'todo-guard.ts')
 
   return new Promise((resolve) => {
     const npxPath = process.platform === 'win32' ? 'npx.cmd' : 'npx'

@@ -316,7 +316,7 @@ describe('Validator', () => {
         })
       })
 
-      describe('TDD Violations', () => {
+      describe('TODO Violations', () => {
         const violation = true
 
         describe('Adding multiple tests at once', () => {

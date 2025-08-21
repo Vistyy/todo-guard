@@ -8,7 +8,7 @@ const LINT_FILENAME = 'lint.json'
 const CONFIG_FILENAME = 'config.json'
 
 export class Config {
-  static readonly DEFAULT_DATA_DIR = '.claude/tdd-guard/data' as const
+  static readonly DEFAULT_DATA_DIR = '.claude/todo-guard/data' as const
 
   readonly dataDir: string
   readonly useSystemClaude: boolean
@@ -44,7 +44,7 @@ export class Config {
   }
 
   private getAnthropicApiKey(options?: ConfigOptions): string | undefined {
-    return options?.anthropicApiKey ?? process.env.TDD_GUARD_ANTHROPIC_API_KEY
+    return options?.anthropicApiKey ?? process.env.TODO_GUARD_ANTHROPIC_API_KEY
   }
 
   private getModelType(

@@ -68,7 +68,7 @@ describe('Tool-specific schemas', () => {
       },
       {
         description: 'with different prompt',
-        data: testData.userPromptSubmit({ prompt: 'tdd-guard off' }),
+        data: testData.userPromptSubmit({ prompt: 'todo-guard off' }),
         expectedSuccess: true,
       },
       {

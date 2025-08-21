@@ -4,8 +4,8 @@ import { ValidationResult } from '../contracts/types/ValidationResult'
 export class UserPromptHandler {
   private readonly guardManager: GuardManager
   private readonly GUARD_COMMANDS = {
-    ON: 'tdd-guard on',
-    OFF: 'tdd-guard off'
+    ON: 'todo-guard on',
+    OFF: 'todo-guard off'
   } as const
 
   constructor(guardManager?: GuardManager) {
@@ -25,11 +25,11 @@ export class UserPromptHandler {
     switch (command) {
       case this.GUARD_COMMANDS.ON:
         await this.guardManager.enable()
-        return this.createBlockResult('TDD Guard enabled')
+        return this.createBlockResult('Todo Guard enabled')
       
       case this.GUARD_COMMANDS.OFF:
         await this.guardManager.disable()
-        return this.createBlockResult('TDD Guard disabled')
+        return this.createBlockResult('Todo Guard disabled')
       
       default:
         return undefined

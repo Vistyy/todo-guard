@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-TDD Guard stores data in `.claude/tdd-guard/data` relative to the current working directory. This creates issues when:
+Todo Guard stores data in `.claude/todo-guard/data` relative to the current working directory. This creates issues when:
 
 - Users run commands from subdirectories (e.g., `cd src && npm test`)
 - Claude Code executes commands from different locations within a project
@@ -18,12 +18,12 @@ Claude Code provides the `CLAUDE_PROJECT_DIR` environment variable that always p
 
 ## Decision
 
-We will use `CLAUDE_PROJECT_DIR` when available to determine the base path for TDD Guard's data directory.
+We will use `CLAUDE_PROJECT_DIR` when available to determine the base path for Todo Guard's data directory.
 
 The implementation:
 
 - Check if `CLAUDE_PROJECT_DIR` is set and valid
-- Use it as the base path for `.claude/tdd-guard/data` if available
+- Use it as the base path for `.claude/todo-guard/data` if available
 - Fall back to current working directory if not set
 - Apply security validations to prevent path traversal attacks
 - Reporter-provided `projectRoot` takes precedence over `CLAUDE_PROJECT_DIR`
@@ -34,7 +34,7 @@ Security validations include:
 - Prevent path traversal by checking for `..` sequences
 - Ensure current working directory is within `CLAUDE_PROJECT_DIR`
 
-When validation fails, TDD Guard throws a descriptive error and the operation is blocked, preventing any file system access with invalid paths.
+When validation fails, Todo Guard throws a descriptive error and the operation is blocked, preventing any file system access with invalid paths.
 
 ## Consequences
 

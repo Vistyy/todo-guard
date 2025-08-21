@@ -7,11 +7,11 @@ export const FILE_TYPE_RULES = `## File Type Specific Rules
 ### Test File Rules
 
 #### Always Allowed:
-- **Adding ONE new test** - This is ALWAYS allowed regardless of test output (foundation of TDD cycle)
+- **Adding ONE new test** - This is ALWAYS allowed regardless of test output (foundation of TODO cycle)
 - Modifying existing tests without adding new ones
 - Setting up test infrastructure and utilities
 
-**CRITICAL**: Adding a single test to a test file does NOT require prior test output. Writing the first failing test is the start of the TDD cycle.
+**CRITICAL**: Adding a single test to a test file does NOT require prior test output. Writing the first failing test is the start of the TODO cycle.
 
 #### Violations:
 - Adding multiple new tests simultaneously

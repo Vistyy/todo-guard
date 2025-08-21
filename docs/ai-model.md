@@ -1,6 +1,6 @@
 # AI Model Configuration
 
-TDD Guard validates changes using AI. Choose between Claude Code CLI (default) or Anthropic API.
+Todo Guard validates changes using AI. Choose between Claude Code CLI (default) or Anthropic API.
 
 ## Claude Code CLI (Default)
 
@@ -20,11 +20,11 @@ Faster validation using direct API access. Requires separate billing from Claude
 2. Add to `.env`:
 
 ```bash
-TDD_GUARD_ANTHROPIC_API_KEY=your_api_key_here
+TODO_GUARD_ANTHROPIC_API_KEY=your_api_key_here
 MODEL_TYPE=anthropic_api
 ```
 
-**Note:** Uses `TDD_GUARD_ANTHROPIC_API_KEY` to avoid conflicts with Claude CLI authentication.
+**Note:** Uses `TODO_GUARD_ANTHROPIC_API_KEY` to avoid conflicts with Claude CLI authentication.
 
 ## When to Use Which
 

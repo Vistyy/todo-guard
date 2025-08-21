@@ -37,14 +37,14 @@ describe('validator with mock model', () => {
   })
 
   describe('JSON extraction from model responses', () => {
-    const BLOCK_JSON = '{"decision": "block", "reason": "TDD violation"}'
+    const BLOCK_JSON = '{"decision": "block", "reason": "TODO violation"}'
     const PASS_JSON = '{"decision": null, "reason": "ok"}'
 
     const testCases = [
       {
         name: 'should extract JSON from markdown code blocks',
         modelResponse: `\`\`\`json\n${BLOCK_JSON}\n\`\`\``,
-        expected: { decision: 'block', reason: 'TDD violation' },
+        expected: { decision: 'block', reason: 'TODO violation' },
       },
       {
         name: 'should handle JSON with extra whitespace in code blocks',
@@ -59,7 +59,7 @@ describe('validator with mock model', () => {
       {
         name: 'should extract JSON from response with surrounding text',
         modelResponse: `Here is my analysis:\n\`\`\`json\n${BLOCK_JSON}\n\`\`\`\nThat concludes the review.`,
-        expected: { decision: 'block', reason: 'TDD violation' },
+        expected: { decision: 'block', reason: 'TODO violation' },
       },
       {
         name: 'should handle fence blocks without language specification',
@@ -89,12 +89,12 @@ Analysis paragraph two with more details.
 
 {
   "decision": "block",
-  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time"
+  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time"
 }`,
         expected: {
           decision: 'block',
           reason:
-            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time',
+            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time',
         },
       },
       {
@@ -102,12 +102,12 @@ Analysis paragraph two with more details.
         modelResponse: `Analysis text that gets cut off mid-sentence because it's too lo...
 {
   "decision": "block",
-  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time"
+  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time"
 }`,
         expected: {
           decision: 'block',
           reason:
-            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time',
+            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time',
         },
       },
       {
@@ -162,16 +162,16 @@ Analysis continues after the code block.
 2. Second point with more detail
 3. Third point explaining the problem
 
-This violates TDD principles as explained in the numbered list above.
+This violates TODO principles as explained in the numbered list above.
 
 {
   "decision": "block",
-  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time"
+  "reason": "Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time"
 }`,
         expected: {
           decision: 'block',
           reason:
-            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TDD discipline of one test at a time',
+            'Multiple test addition violation - adding 2 new tests simultaneously instead of following TODO discipline of one test at a time',
         },
       },
     ]

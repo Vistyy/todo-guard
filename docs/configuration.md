@@ -1,14 +1,14 @@
 # Configuration Guide
 
-This guide covers the configuration options for TDD Guard.
+This guide covers the configuration options for Todo Guard.
 
 ## Environment Variables
 
-TDD Guard uses environment variables for configuration.
+Todo Guard uses environment variables for configuration.
 Create a `.env` file in your project root:
 
 ```bash
-# Model selection for TDD validation
+# Model selection for TODO validation
 # Options: 'claude_cli' (default) or 'anthropic_api'
 MODEL_TYPE=claude_cli
 
@@ -25,7 +25,7 @@ USE_SYSTEM_CLAUDE=false
 # Anthropic API Key
 # Required when MODEL_TYPE or TEST_MODEL_TYPE is set to 'anthropic_api'
 # Get your API key from https://console.anthropic.com/
-TDD_GUARD_ANTHROPIC_API_KEY=your-api-key-here
+TODO_GUARD_ANTHROPIC_API_KEY=your-api-key-here
 
 # Linter type for refactoring phase support (optional)
 # Options: 'eslint' or unset (no linting)
@@ -46,7 +46,7 @@ The default model uses the Claude Code command-line interface:
 
 For consistent cloud-based validation:
 
-- Requires valid `TDD_GUARD_ANTHROPIC_API_KEY`
+- Requires valid `TODO_GUARD_ANTHROPIC_API_KEY`
 
 ### Test-specific Configuration
 
@@ -68,14 +68,14 @@ This is useful for:
 
 Use Claude Code's `/hooks` command to set up both hooks:
 
-#### PreToolUse Hook (TDD Validation)
+#### PreToolUse Hook (TODO Validation)
 
 1. Type `/hooks` in Claude Code
 2. Select `PreToolUse - Before tool execution`
 3. Choose `+ Add new matcher...`
 4. Enter: `Write|Edit|MultiEdit|TodoWrite`
 5. Select `+ Add new hook...`
-6. Enter command: `tdd-guard`
+6. Enter command: `todo-guard`
 7. Choose where to save:
    - **Project settings** (`.claude/settings.json`) - Recommended for team consistency
    - **Local settings** (`.claude/settings.local.json`) - For personal preferences
@@ -94,7 +94,7 @@ Add to `.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "tdd-guard"
+            "command": "todo-guard"
           }
         ]
       }
@@ -103,7 +103,7 @@ Add to `.claude/settings.json`:
 }
 ```
 
-**Tip:** Also configure [quick commands](quick-commands.md) for `tdd-guard on/off` and [ESLint integration](linting.md) for automated refactoring support.
+**Tip:** Also configure [quick commands](quick-commands.md) for `todo-guard on/off` and [ESLint integration](linting.md) for automated refactoring support.
 
 ## Test Reporter Configuration
 
@@ -115,7 +115,7 @@ Add to `.claude/settings.json`:
 
 ## Data Storage
 
-TDD Guard stores context data in `.claude/tdd-guard/data/`:
+Todo Guard stores context data in `.claude/todo-guard/data/`:
 
 - `test.json` - Latest test results from your test runner (Vitest or pytest)
 - `todos.json` - Current todo state
@@ -168,7 +168,7 @@ unset ANTHROPIC_API_KEY
 
 #### Vitest
 
-Use the latest Vitest version to ensure correct test output format for TDD Guard:
+Use the latest Vitest version to ensure correct test output format for Todo Guard:
 
 ```bash
 npm install --save-dev vitest@latest
@@ -184,41 +184,41 @@ pip install pytest>=7.0.0
 
 ### Common Issues
 
-1. **TDD Guard not triggering**: Check that hooks are properly configured in `.claude/settings.json`
+1. **Todo Guard not triggering**: Check that hooks are properly configured in `.claude/settings.json`
 2. **Test results not captured**: Ensure `VitestReporter` is added to your Vitest config
 3. **Claude CLI failures**: Verify Claude installation and check for API key conflicts
-4. **"Command not found" errors**: Make sure `tdd-guard` is installed globally with `npm install -g tdd-guard`
+4. **"Command not found" errors**: Make sure `todo-guard` is installed globally with `npm install -g todo-guard`
 5. **Changes not taking effect**: Restart your Claude session after modifying hooks or environment variables
 
-### Updating TDD Guard
+### Updating Todo Guard
 
 To update to the latest version:
 
 ```bash
 # Update CLI tool
-npm update -g tdd-guard
+npm update -g todo-guard
 
 # For JavaScript/TypeScript projects, update the Vitest reporter in your project
-npm update tdd-guard-vitest
+npm update todo-guard-vitest
 
 # For Python projects, update the pytest reporter
-pip install --upgrade tdd-guard-pytest
+pip install --upgrade todo-guard-pytest
 ```
 
 Check your current version:
 
 ```bash
-npm list -g tdd-guard
-pip show tdd-guard-pytest
+npm list -g todo-guard
+pip show todo-guard-pytest
 ```
 
 ## Advanced Configuration
 
 ### Custom Validation Rules
 
-To modify TDD validation behavior, fork the repository and edit the prompt files in `src/validation/prompts/`. Key files:
+To modify TODO validation behavior, fork the repository and edit the prompt files in `src/validation/prompts/`. Key files:
 
-- `tdd-core-principles.ts` - Core TDD rules
+- `todo-core-principles.ts` - Core TODO rules
 - `write-analysis.ts` - Rules for Write operations
 - `edit-analysis.ts` - Rules for Edit operations
 - `multi-edit-analysis.ts` - Rules for MultiEdit operations

@@ -75,7 +75,7 @@ export const TEST_DEFAULTS = {
     session_id,
     transcript_path,
     hook_event_name: 'UserPromptSubmit',
-    prompt: 'tdd-guard on',
+    prompt: 'todo-guard on',
     cwd: '/current/working/directory',
   },
   sessionStart: {

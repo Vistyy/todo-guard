@@ -2,7 +2,7 @@
 # DEVELOPMENT ENVIRONMENT SETUP
 # =============================
 #
-# This script sets up the complete development environment for TDD Guard,
+# This script sets up the complete development environment for Todo Guard,
 # including all dependencies for the main package and language-specific reporters.
 #
 # SETUP INCLUDES:
@@ -25,7 +25,7 @@
 set -euo pipefail  # Exit on error, undefined vars, and pipeline failures
 IFS=$'\n\t'       # Stricter word splitting
 
-echo "Starting TDD Guard development environment setup..."
+echo "Starting Todo Guard development environment setup..."
 
 # 1. Initialize firewall
 echo ""

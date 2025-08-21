@@ -8,7 +8,6 @@ export function context(overrides?: Partial<Context>): Context {
   return {
     modifications: TEST_DEFAULTS.modifications,
     todo: JSON.stringify([TEST_DEFAULTS.todo]),
-    test: TEST_DEFAULTS.test,
     ...overrides,
   }
 }

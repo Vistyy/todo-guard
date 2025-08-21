@@ -112,7 +112,7 @@ describe('Config', () => {
         const configWithNestedCwd = new Config()
 
         expect(configWithNestedCwd.dataDir).toBe(
-          '/project/root/.claude/tdd-guard/data'
+          '/project/root/.claude/todo-guard/data'
         )
       })
 
@@ -179,7 +179,7 @@ describe('Config', () => {
     })
 
     test('options take precedence over env var', () => {
-      process.env.TDD_GUARD_ANTHROPIC_API_KEY = 'env-api-key'
+      process.env.TODO_GUARD_ANTHROPIC_API_KEY = 'env-api-key'
 
       const config = new Config({ anthropicApiKey: 'options-api-key' })
 
@@ -187,7 +187,7 @@ describe('Config', () => {
     })
 
     test('falls back to env var when not in options', () => {
-      process.env.TDD_GUARD_ANTHROPIC_API_KEY = 'env-api-key'
+      process.env.TODO_GUARD_ANTHROPIC_API_KEY = 'env-api-key'
 
       const config = new Config()
 
@@ -195,7 +195,7 @@ describe('Config', () => {
     })
 
     test('returns undefined when neither options nor env var are set', () => {
-      delete process.env.TDD_GUARD_ANTHROPIC_API_KEY
+      delete process.env.TODO_GUARD_ANTHROPIC_API_KEY
 
       const config = new Config()
 

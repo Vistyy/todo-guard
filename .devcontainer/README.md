@@ -1,6 +1,6 @@
-# TDD Guard Development Container
+# Todo Guard Development Container
 
-A consistent, isolated environment for developing TDD Guard.
+A consistent, isolated environment for developing Todo Guard.
 
 ## Features
 

@@ -1,9 +1,9 @@
 #!/bin/bash
-# FIREWALL CONFIGURATION FOR TDD GUARD DEVCONTAINER
+# FIREWALL CONFIGURATION FOR TODO GUARD DEVCONTAINER
 # =================================================
 #
 # This script implements network restrictions for the development container
-# to ensure a controlled environment for TDD Guard development.
+# to ensure a controlled environment for Todo Guard development.
 #
 # ALLOWED CONNECTIONS:
 # - DNS resolution (port 53)

@@ -43,7 +43,7 @@ describe('ClaudeCli', () => {
 
   describe('subprocess configuration', () => {
     test('passes prompt via input option', async () => {
-      const prompt = 'Does this follow TDD?'
+      const prompt = 'Does this follow TODO?'
       const call = await sut.askAndGetCall(prompt)
       expect(call.options.input).toBe(prompt)
     })
