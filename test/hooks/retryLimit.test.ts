@@ -74,20 +74,24 @@ describe('Retry Limit Feature', () => {
       const todo1 = 'Task one'
       const todo2 = 'Task two'
       
-      // Set up previous state to make todo1 "newly completed" for first attempt logic
-      await storage.savePreviousTodos(JSON.stringify({
-        tool_input: { todos: [{ content: todo1, status: 'pending' }] }
-      }))
-      
       // Make todo1 hit its limit
       const hookData1 = testData.todoWriteOperation({
         tool_input: { todos: [testData.todo({ content: todo1, status: 'completed' })] }
       })
       
+      // Set up previous state for first attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todo1, status: 'pending' }] }
+      }))
+      
       // First attempt blocked, then 4 more attempts (total 5)
-      await processHookData(JSON.stringify(hookData1), { storage })
+      await processHookData(JSON.stringify(hookData1), { storage, skipHookEvents: true })
       for (let i = 0; i < 4; i++) {
-        await processHookData(JSON.stringify(hookData1), { storage })
+        // Set up previous state to make todo1 "newly completed" for each attempt
+        await storage.savePreviousTodos(JSON.stringify({
+          tool_input: { todos: [{ content: todo1, status: 'pending' }] }
+        }))
+        await processHookData(JSON.stringify(hookData1), { storage, skipHookEvents: true })
       }
 
       // Now todo1 should be at limit, but todo2 should still work
@@ -105,7 +109,12 @@ describe('Retry Limit Feature', () => {
       expect(result.reason).toContain('Todo Guard: Verify that') // First attempt for todo2
 
       // Try todo1 again - should hit retry limit
-      result = await processHookData(JSON.stringify(hookData1), { storage })
+      // Set up previous state for final attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todo1, status: 'pending' }] }
+      }))
+      
+      result = await processHookData(JSON.stringify(hookData1), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
       expect(result.reason).toContain('Maximum retry attempts (5) exceeded')
     })
@@ -119,10 +128,19 @@ describe('Retry Limit Feature', () => {
         tool_input: { todos: [testData.todo({ content: todo1, status: 'completed' })] }
       })
       
+      // Set up previous state for first attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todo1, status: 'pending' }] }
+      }))
+      
       // First attempt + 4 more = 5 total attempts for todo1
-      await processHookData(JSON.stringify(hookData1), { storage })
+      await processHookData(JSON.stringify(hookData1), { storage, skipHookEvents: true })
       for (let i = 0; i < 4; i++) {
-        await processHookData(JSON.stringify(hookData1), { storage })
+        // Set up previous state for each subsequent attempt
+        await storage.savePreviousTodos(JSON.stringify({
+          tool_input: { todos: [{ content: todo1, status: 'pending' }] }
+        }))
+        await processHookData(JSON.stringify(hookData1), { storage, skipHookEvents: true })
       }
 
       // Now try both todos together - should block entire operation
@@ -135,7 +153,15 @@ describe('Retry Limit Feature', () => {
         }
       })
       
-      const result = await processHookData(JSON.stringify(mixedHookData), { storage })
+      // Set up previous state to make both todos appear newly completed
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [
+          { content: todo1, status: 'pending' },
+          { content: todo2, status: 'pending' }
+        ]}
+      }))
+      
+      const result = await processHookData(JSON.stringify(mixedHookData), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
       expect(result.reason).toContain('Maximum retry attempts (5) exceeded')
       expect(result.reason).toContain(todo1)
@@ -152,12 +178,27 @@ describe('Retry Limit Feature', () => {
         tool_input: { todos: [testData.todo({ content: todoContent, status: 'completed' })] }
       })
 
+      // Set up previous state to make todo "newly completed" for first attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todoContent, status: 'pending' }] }
+      }))
+
       // First attempt - blocked
       await processHookData(JSON.stringify(hookData), { storage, skipHookEvents: true })
+      
+      // Set up previous state to make todo "newly completed" for second attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todoContent, status: 'pending' }] }
+      }))
       
       // Second attempt - should pass through
       let result = await processHookData(JSON.stringify(hookData), { storage, skipHookEvents: true })
       expect(result.decision).toBeUndefined()
+
+      // Set up previous state to make todo "newly completed" for third attempt
+      await storage.savePreviousTodos(JSON.stringify({
+        tool_input: { todos: [{ content: todoContent, status: 'pending' }] }
+      }))
 
       // Third attempt - should be blocked by retry limit
       result = await processHookData(JSON.stringify(hookData), { storage })

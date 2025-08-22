@@ -8,14 +8,10 @@ import { ValidationResult } from '../contracts/types/ValidationResult'
 import { Context } from '../contracts/types/Context'
 import { HookDataSchema, ToolOperationSchema, isTodoWriteOperation } from '../contracts/schemas/toolSchemas'
 import { TranscriptReader } from './transcriptReader'
-import { AttemptTracker } from './attemptTracker'
+import { AttemptTracker, TodoItem } from './attemptTracker'
 
 const LOG_PATH = 'tmp/todo-guard-debug.log'
 
-interface TodoItem {
-  content: string
-  status: 'pending' | 'in_progress' | 'completed'
-}
 
 interface TodoOperation {
   tool_input: {
@@ -26,28 +22,10 @@ interface TodoOperation {
 function parseOperationTodos(operationJson: string): TodoItem[] {
   try {
     const operation = JSON.parse(operationJson) as TodoOperation
-    return operation.tool_input?.todos || []
+    return operation.tool_input.todos
   } catch {
     return []
   }
-}
-
-function findNewlyCompletedTodos(currentTodos: TodoItem[], previousTodos: TodoItem[]): TodoItem[] {
-  const newlyCompleted: TodoItem[] = []
-  
-  for (const currentTodo of currentTodos) {
-    if (currentTodo.status === 'completed') {
-      // Check if this todo was not completed in the previous state
-      const previousTodo = previousTodos.find(p => p.content === currentTodo.content)
-      const wasNotPreviouslyCompleted = !previousTodo || previousTodo.status !== 'completed'
-      
-      if (wasNotPreviouslyCompleted) {
-        newlyCompleted.push(currentTodo)
-      }
-    }
-  }
-  
-  return newlyCompleted
 }
 
 async function logDebugInfo(message: string, data?: unknown): Promise<void> {
@@ -88,7 +66,6 @@ async function handleTodoValidation(hookData: HookData, storage: Storage, guardM
     return null
   }
 
-  // Get previous todo state for comparison
   const previousTodoJson = await storage.getPreviousTodos()
   const previousTodos = previousTodoJson ? parseOperationTodos(previousTodoJson) : []
   
@@ -97,108 +74,30 @@ async function handleTodoValidation(hookData: HookData, storage: Storage, guardM
     todos: previousTodos.map(t => ({content: t.content, status: t.status}))
   })
 
-  // Identify newly completed todos (changed from non-completed to completed)
-  const newlyCompletedTodos = findNewlyCompletedTodos(currentTodos, previousTodos)
-  
-  await logDebugInfo('Newly completed todos identified', {
-    count: newlyCompletedTodos.length,
-    todos: newlyCompletedTodos.map(t => ({content: t.content, status: t.status}))
-  })
-
   const attemptTracker = new AttemptTracker(storage)
-  
-  // Check retry limit for ALL completed todos in the request (whether newly completed or not)
   const maxRetryAttempts = await guardManager.getMaxRetryAttempts()
-  await logDebugInfo(`Max retry attempts configured: ${maxRetryAttempts}`)
-  const todosExceedingLimit = []
   
-  for (const todo of currentTodos.filter(t => t.status === 'completed')) {
-    const currentAttempts = await attemptTracker.getAttemptCount(todo.content)
-    await logDebugInfo(`Completed todo "${todo.content}" attempt count: ${currentAttempts}, max: ${maxRetryAttempts}`)
-    
-    // Check if this todo has exceeded the retry limit  
-    // Using >= because we check BEFORE incrementing the attempt count
-    if (currentAttempts >= maxRetryAttempts) {
-      await logDebugInfo(`Todo "${todo.content}" exceeds retry limit: ${currentAttempts} >= ${maxRetryAttempts}`)
-      todosExceedingLimit.push(todo)
-    }
-  }
+  await logDebugInfo(`Processing attempt tracking with max retry attempts: ${maxRetryAttempts}`)
   
-  // Block if any todos exceed retry limit
-  if (todosExceedingLimit.length > 0) {
-    const todoList = todosExceedingLimit.map(t => `'${t.content}'`).join(', ')
+  const attemptResult = await attemptTracker.processCompletionAttempt(
+    currentTodos,
+    previousTodos,
+    maxRetryAttempts
+  )
+  
+  await logDebugInfo('Attempt tracking result', {
+    exceededLimit: attemptResult.exceededLimit.length,
+    firstAttempt: attemptResult.firstAttempt.length,
+    subsequentAttempt: attemptResult.subsequentAttempt.length,
+    shouldBlock: attemptResult.shouldBlock,
+    blockReason: attemptResult.blockReason
+  })
+  
+  if (attemptResult.shouldBlock) {
     return {
       decision: 'block',
-      reason: `Maximum retry attempts (${maxRetryAttempts}) exceeded for: ${todoList}. Stop and await user confirmation.`
+      reason: attemptResult.blockReason!
     }
-  }
-
-  // If no newly completed todos, skip validation entirely
-  if (newlyCompletedTodos.length === 0) {
-    await logDebugInfo('No newly completed todos, skipping validation')
-    // Still increment attempts for all completed todos in request before skipping
-    for (const todo of currentTodos.filter(t => t.status === 'completed')) {
-      await attemptTracker.incrementAttempt(todo.content)
-    }
-    return null
-  }
-
-  const nonCompletedTodos = currentTodos.filter(todo => todo.status !== 'completed')
-  
-  // Reset attempts for todos moved back to non-completed
-  if (nonCompletedTodos.length > 0) {
-    const todoContentsToReset = nonCompletedTodos.map(todo => todo.content)
-    await attemptTracker.resetAttemptsForTodos(todoContentsToReset)
-    await logDebugInfo('Reset attempts for todos moved back to non-completed', todoContentsToReset)
-  }
-
-  const firstAttemptTodos = []
-  const subsequentAttemptTodos = []
-  
-  await logDebugInfo('Processing newly completed todos for first attempt logic', {
-    newlyCompletedCount: newlyCompletedTodos.length,
-    newlyCompletedTodos: newlyCompletedTodos.map(t => t.content)
-  })
-  
-  // Process newly completed todos for first vs subsequent attempt logic BEFORE incrementing
-  for (const todo of newlyCompletedTodos) {
-    const attemptCount = await attemptTracker.getAttemptCount(todo.content)
-    await logDebugInfo(`Checking attempt count for "${todo.content}": ${attemptCount}`)
-    
-    if (attemptCount === 0) {
-      firstAttemptTodos.push(todo)
-      await logDebugInfo(`Added "${todo.content}" to first attempt todos`)
-    } else {
-      subsequentAttemptTodos.push(todo)
-      await logDebugInfo(`Added "${todo.content}" to subsequent attempt todos`)
-    }
-  }
-
-  await logDebugInfo('First attempt analysis complete', {
-    firstAttemptCount: firstAttemptTodos.length,
-    subsequentAttemptCount: subsequentAttemptTodos.length
-  })
-
-  // Now increment attempt counter for ALL completed todos in the request
-  for (const todo of currentTodos.filter(t => t.status === 'completed')) {
-    await attemptTracker.incrementAttempt(todo.content)
-    await logDebugInfo(`Incremented attempt counter for "${todo.content}"`)
-  }
-
-  if (firstAttemptTodos.length > 0) {
-    await logDebugInfo('Found first attempt todos, blocking with first attempt message')
-    if (firstAttemptTodos.length === 1) {
-      return {
-        decision: 'block',
-        reason: `Todo Guard: Verify that '${firstAttemptTodos[0].content}' is actually complete.`
-      }
-    } 
-      const todoList = firstAttemptTodos.map(t => `'${t.content}'`).join(', ')
-      return {
-        decision: 'block',
-        reason: `Todo Guard: These tasks must be verified as complete: ${todoList}.`
-      }
-    
   }
   
   return null
@@ -302,6 +201,7 @@ export async function processHookData(
     if (todoValidationResult) {
       return todoValidationResult
     }
+    
   }
 
   await logDebugInfo('About to call performValidation')
@@ -309,6 +209,30 @@ export async function processHookData(
   const validationResult = await performValidation(deps, hookResult.data)
   
   await logDebugInfo('Validation result', validationResult)
+  
+  // If AI validation passed (no block decision), clean up newly completed todos from attempt tracking
+  if (!validationResult.decision && deps.validator) {
+    const operation = ToolOperationSchema.safeParse(hookResult.data)
+    if (operation.success && isTodoWriteOperation(operation.data)) {
+      const previousTodoJson = await storage.getPreviousTodos()
+      const previousTodos = previousTodoJson ? parseOperationTodos(previousTodoJson) : []
+      const attemptTracker = new AttemptTracker(storage)
+      const newlyCompletedTodos = attemptTracker.findNewlyCompletedTodos(operation.data.tool_input.todos, previousTodos)
+      
+      if (newlyCompletedTodos.length > 0) {
+        const newlyCompletedContents = newlyCompletedTodos.map(todo => todo.content)
+        await attemptTracker.markAsSuccessfullyCompleted(newlyCompletedContents)
+        await logDebugInfo('Cleaned up newly completed todos from attempt tracking after AI validation passed', newlyCompletedContents)
+      }
+
+      // After successful validation, update the previous todos state
+      const todoOperationForPrevious = JSON.stringify({
+        tool_input: operation.data.tool_input
+      }, null, 2)
+      await storage.savePreviousTodos(todoOperationForPrevious)
+      await logDebugInfo('Updated previous todos state after successful validation')
+    }
+  }
   
   return validationResult
 }
@@ -395,16 +319,16 @@ async function buildContextWithTranscript(storage: Storage, hookData: HookData):
       const previousTodos = previousTodoJson ? parseOperationTodos(previousTodoJson) : []
       
       // Find newly completed todos (only those that changed from non-completed to completed)
-      const newlyCompletedTodos = findNewlyCompletedTodos(operation.data.tool_input.todos, previousTodos)
+      const newlyCompletedTodos = attemptTracker.findNewlyCompletedTodos(operation.data.tool_input.todos, previousTodos)
       
       await logDebugInfo('Building context with newly completed todos only', {
-        totalCompleted: operation.data.tool_input.todos.filter(t => t.status === 'completed').length,
+        totalCompleted: operation.data.tool_input.todos.filter((t: TodoItem) => t.status === 'completed').length,
         newlyCompleted: newlyCompletedTodos.length,
-        newlyCompletedTodos: newlyCompletedTodos.map(t => t.content)
+        newlyCompletedTodos: newlyCompletedTodos.map((t: TodoItem) => t.content)
       })
       
       const completedTodosData = await Promise.all(
-        newlyCompletedTodos.map(async (todoItem) => {
+        newlyCompletedTodos.map(async (todoItem: TodoItem) => {
           const attemptCount = await attemptTracker.getAttemptCount(todoItem.content)
           return { 
             content: todoItem.content, 

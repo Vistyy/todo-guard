@@ -15,7 +15,7 @@ export const TODO_ANALYSIS = `## Todo Completion Verification Protocol
    - Be authoritative and direct
 
 3. **Block and Assert**
-   - Always return decision: "block"
+   - Return decision: "block" if verification is needed, null if completion is legitimate
    - Include a clear verification requirement in the reason
 
 ### Statement Templates
@@ -47,7 +47,7 @@ Use these assertive patterns:
 - **Keep it direct** - Clear, authoritative statements only
 - **Be assertive** - Firm tone that enforces accountability
 - **State requirements** - Assert what must be done for verification
-- **Always block** - With direct verification requirements
+- **Block when needed** - With direct verification requirements when evidence is insufficient
 - **Demand accountability** - Assert verification is mandatory
 
 Remember: Your job is enforcing accountability - assert that verification is required.`
