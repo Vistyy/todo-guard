@@ -31,6 +31,11 @@ export class HookEvents {
     const content = JSON.stringify(operation, null, 2)
     
     if (isTodoWriteOperation(operation)) {
+      // Save current todo state as previous before writing new state
+      const currentTodos = await this.storage.getTodo()
+      if (currentTodos) {
+        await this.storage.savePreviousTodos(currentTodos)
+      }
       await this.storage.saveTodo(content)
     } else {
       await this.storage.saveModifications(content)

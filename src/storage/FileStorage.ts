@@ -15,6 +15,7 @@ export class FileStorage implements Storage {
       lint: this.config.lintFilePath,
       config: this.config.configFilePath,
       attempts: this.config.attemptsFilePath,
+      previousTodos: this.config.previousTodosFilePath,
     }
   }
 
@@ -81,6 +82,14 @@ export class FileStorage implements Storage {
 
   async getAttempts(): Promise<string | null> {
     return this.get('attempts')
+  }
+
+  async savePreviousTodos(content: string): Promise<void> {
+    await this.save('previousTodos', content)
+  }
+
+  async getPreviousTodos(): Promise<string | null> {
+    return this.get('previousTodos')
   }
 
   async clearTransientData(): Promise<void> {

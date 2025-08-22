@@ -12,6 +12,44 @@ import { AttemptTracker } from './attemptTracker'
 
 const LOG_PATH = 'tmp/todo-guard-debug.log'
 
+interface TodoItem {
+  content: string
+  status: 'pending' | 'in_progress' | 'completed'
+}
+
+interface TodoOperation {
+  tool_input: {
+    todos: TodoItem[]
+  }
+}
+
+function parseOperationTodos(operationJson: string): TodoItem[] {
+  try {
+    const operation = JSON.parse(operationJson) as TodoOperation
+    return operation.tool_input?.todos || []
+  } catch {
+    return []
+  }
+}
+
+function findNewlyCompletedTodos(currentTodos: TodoItem[], previousTodos: TodoItem[]): TodoItem[] {
+  const newlyCompleted: TodoItem[] = []
+  
+  for (const currentTodo of currentTodos) {
+    if (currentTodo.status === 'completed') {
+      // Check if this todo was not completed in the previous state
+      const previousTodo = previousTodos.find(p => p.content === currentTodo.content)
+      const wasNotPreviouslyCompleted = !previousTodo || previousTodo.status !== 'completed'
+      
+      if (wasNotPreviouslyCompleted) {
+        newlyCompleted.push(currentTodo)
+      }
+    }
+  }
+  
+  return newlyCompleted
+}
+
 async function logDebugInfo(message: string, data?: unknown): Promise<void> {
   try {
     const fs = await import('fs')
@@ -38,21 +76,45 @@ async function handleTodoValidation(hookData: HookData, storage: Storage): Promi
     return null
   }
 
-  const hasCompletedTodos = operation.data.tool_input.todos.some(todo => todo.status === 'completed')
+  const currentTodos = operation.data.tool_input.todos
+  const hasCompletedTodos = currentTodos.some(todo => todo.status === 'completed')
   
   await logDebugInfo('Has completed todos', {
     hasCompletedTodos,
-    todos: operation.data.tool_input.todos.map(t => ({content: t.content, status: t.status}))
+    todos: currentTodos.map(t => ({content: t.content, status: t.status}))
   })
   
   if (!hasCompletedTodos) {
     return null
   }
 
-  const attemptTracker = new AttemptTracker(storage)
-  const completedTodos = operation.data.tool_input.todos.filter(todo => todo.status === 'completed')
-  const nonCompletedTodos = operation.data.tool_input.todos.filter(todo => todo.status !== 'completed')
+  // Get previous todo state for comparison
+  const previousTodoJson = await storage.getPreviousTodos()
+  const previousTodos = previousTodoJson ? parseOperationTodos(previousTodoJson) : []
   
+  await logDebugInfo('Previous todos loaded', { 
+    count: previousTodos.length, 
+    todos: previousTodos.map(t => ({content: t.content, status: t.status}))
+  })
+
+  // Identify newly completed todos (changed from non-completed to completed)
+  const newlyCompletedTodos = findNewlyCompletedTodos(currentTodos, previousTodos)
+  
+  await logDebugInfo('Newly completed todos identified', {
+    count: newlyCompletedTodos.length,
+    todos: newlyCompletedTodos.map(t => ({content: t.content, status: t.status}))
+  })
+
+  // If no newly completed todos, skip validation entirely
+  if (newlyCompletedTodos.length === 0) {
+    await logDebugInfo('No newly completed todos, skipping validation')
+    return null
+  }
+
+  const attemptTracker = new AttemptTracker(storage)
+  const nonCompletedTodos = currentTodos.filter(todo => todo.status !== 'completed')
+  
+  // Reset attempts for todos moved back to non-completed
   if (nonCompletedTodos.length > 0) {
     const todoContentsToReset = nonCompletedTodos.map(todo => todo.content)
     await attemptTracker.resetAttemptsForTodos(todoContentsToReset)
@@ -62,9 +124,10 @@ async function handleTodoValidation(hookData: HookData, storage: Storage): Promi
   const firstAttemptTodos = []
   const subsequentAttemptTodos = []
   
-  for (const todo of completedTodos) {
+  // Only process newly completed todos for attempt tracking
+  for (const todo of newlyCompletedTodos) {
     const attemptCount = await attemptTracker.getAttemptCount(todo.content)
-    await logDebugInfo(`Todo "${todo.content}" attempt count`, attemptCount)
+    await logDebugInfo(`Newly completed todo "${todo.content}" attempt count`, attemptCount)
     
     if (attemptCount === 0) {
       firstAttemptTodos.push(todo)
@@ -278,20 +341,32 @@ async function buildContextWithTranscript(storage: Storage, hookData: HookData):
       await logDebugInfo('Extracted conversation text', { length: transcript.length })
     }
     
-    // Extract completed todos from the current operation with attempt counts
+    // Extract only newly completed todos from the current operation with attempt counts
     if (operation.success && isTodoWriteOperation(operation.data)) {
       const attemptTracker = new AttemptTracker(storage)
+      
+      // Get previous todo state for comparison
+      const previousTodoJson = await storage.getPreviousTodos()
+      const previousTodos = previousTodoJson ? parseOperationTodos(previousTodoJson) : []
+      
+      // Find newly completed todos (only those that changed from non-completed to completed)
+      const newlyCompletedTodos = findNewlyCompletedTodos(operation.data.tool_input.todos, previousTodos)
+      
+      await logDebugInfo('Building context with newly completed todos only', {
+        totalCompleted: operation.data.tool_input.todos.filter(t => t.status === 'completed').length,
+        newlyCompleted: newlyCompletedTodos.length,
+        newlyCompletedTodos: newlyCompletedTodos.map(t => t.content)
+      })
+      
       const completedTodosData = await Promise.all(
-        operation.data.tool_input.todos
-          .filter(todoItem => todoItem.status === 'completed')
-          .map(async (todoItem) => {
-            const attemptCount = await attemptTracker.getAttemptCount(todoItem.content)
-            return { 
-              content: todoItem.content, 
-              previousStatus: 'unknown',
-              attemptNumber: attemptCount
-            }
-          })
+        newlyCompletedTodos.map(async (todoItem) => {
+          const attemptCount = await attemptTracker.getAttemptCount(todoItem.content)
+          return { 
+            content: todoItem.content, 
+            previousStatus: 'unknown',
+            attemptNumber: attemptCount
+          }
+        })
       )
       completedTodos = completedTodosData
     }

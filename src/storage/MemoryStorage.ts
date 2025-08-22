@@ -51,6 +51,14 @@ export class MemoryStorage implements Storage {
     return this.store.get('attempts') ?? null
   }
 
+  async savePreviousTodos(content: string): Promise<void> {
+    this.store.set('previousTodos', content)
+  }
+
+  async getPreviousTodos(): Promise<string | null> {
+    return this.store.get('previousTodos') ?? null
+  }
+
   async clearTransientData(): Promise<void> {
     TRANSIENT_DATA.forEach((key) => this.store.delete(key))
   }

@@ -82,6 +82,8 @@ describe('processHookData', () => {
     }).toEqual({
       modifications: EDIT_HOOK_DATA,
       todo: 'existing todo',
+      transcript: '',
+      completedTodos: []
     })
     expect(result).toEqual(BLOCK_RESULT)
   })
