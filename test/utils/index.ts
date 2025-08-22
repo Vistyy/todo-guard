@@ -7,9 +7,6 @@ import * as contextFactory from './factories/contextFactory'
 import * as modelClientProviderFactory from './factories/modelClientProviderFactory'
 import * as operations from './factories/operations'
 import { typescript, python, languages } from './factories/scenarios/index'
-import * as reporterFactory from './factories/reporterFactory'
-import * as testResultsFactory from './factories/testResultsFactory'
-import * as lintFactory from './factories/lintFactory'
 import * as userPromptSubmitFactory from './factories/userPromptSubmitFactory'
 import * as sessionStartFactory from './factories/sessionStartFactory'
 
@@ -73,44 +70,6 @@ export const testData = {
   typescript,
   python,
   languages,
-
-  // Reporter factories - Vitest test modules and cases
-  testModule: reporterFactory.testModule,
-  passedTestCase: reporterFactory.passedTestCase,
-  failedTestCase: reporterFactory.failedTestCase,
-
-  // Test results factories
-  emptyTestResults: testResultsFactory.emptyTestResults,
-  failedTestResults: testResultsFactory.failedTestResults,
-  passingTestResults: testResultsFactory.passingTestResults,
-  multipleFailedTestResults: testResultsFactory.multipleFailedTestResults,
-  mixedTestResults: testResultsFactory.mixedTestResults,
-  multipleModulesTestResults: testResultsFactory.multipleModulesTestResults,
-
-  // Test results base builders
-  createTestError: testResultsFactory.createTestError,
-  createTest: testResultsFactory.createTest,
-  createTestModule: testResultsFactory.createTestModule,
-  createTestResults: testResultsFactory.createTestResults,
-  createUnhandledError: testResultsFactory.createUnhandledError,
-  createUnhandledErrorWithout: testResultsFactory.createUnhandledErrorWithout,
-
-  // Lint factories
-  lintIssue: lintFactory.lintIssue,
-  lintIssueWithout: lintFactory.lintIssueWithout,
-  lintResult: lintFactory.lintResult,
-  lintResultWithout: lintFactory.lintResultWithout,
-  lintData: lintFactory.lintData,
-  lintDataWithout: lintFactory.lintDataWithout,
-  lintResultWithoutErrors: lintFactory.lintResultWithoutErrors,
-  lintResultWithError: lintFactory.lintResultWithError,
-  lintDataWithNotificationFlag: lintFactory.lintDataWithNotificationFlag,
-  lintDataWithError: lintFactory.lintDataWithError,
-  lintDataWithoutErrors: lintFactory.lintDataWithoutErrors,
-  eslintMessage: lintFactory.eslintMessage,
-  eslintMessageWithout: lintFactory.eslintMessageWithout,
-  eslintResult: lintFactory.eslintResult,
-  eslintResultWithout: lintFactory.eslintResultWithout,
 
   // UserPromptSubmit factories
   userPromptSubmit: userPromptSubmitFactory.userPromptSubmit,

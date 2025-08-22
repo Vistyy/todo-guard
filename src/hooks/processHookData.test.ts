@@ -200,10 +200,8 @@ describe('processHookData', () => {
     beforeEach(async () => {
       // Populate storage with data
       await sut.populateStorage({
-        test: JSON.stringify(testData.passingTestResults()),
         todo: JSON.stringify(testData.todoWriteOperation()),
         modifications: JSON.stringify(testData.editOperation()),
-        lint: JSON.stringify(testData.lintDataWithoutErrors()),
         config: JSON.stringify({ guardEnabled: true })
       })
 
@@ -213,10 +211,8 @@ describe('processHookData', () => {
 
     it('should clear transient data when SessionStart event is received', async () => {
       // Verify transient data is cleared
-      expect(await sut.getTest()).toBeNull()
       expect(await sut.getTodo()).toBeNull()
       expect(await sut.getModifications()).toBeNull()
-      expect(await sut.getLint()).toBeNull()
     })
 
     it('should preserve config data when SessionStart event is received', async () => {
