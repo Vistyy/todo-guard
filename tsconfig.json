@@ -21,12 +21,6 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["src/**/*", "test/utils/**/*"],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx",
-    "test/**/*.test.ts"
-  ]
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["dist", "node_modules"]
 }

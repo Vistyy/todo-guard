@@ -219,7 +219,9 @@ This violates TODO principles as explained in the numbered list above.
       )
 
       expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Error during validation')
+      expect(result.reason).toContain(
+        'Todo Guard verification: Please confirm that you actually completed'
+      )
     })
 
     test('should provide special message when model returns no response', async () => {

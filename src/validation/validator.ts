@@ -111,7 +111,15 @@ function parseModelResponse(response: string): ValidationResult {
     const jsonString = extractJsonString(response)
     const parsed = JSON.parse(jsonString)
     return normalizeValidationResult(parsed)
-  } catch {
+  } catch (error) {
+    // Handle specific "No response from model" case
+    if (error instanceof Error && error.message === 'No response from model') {
+      return {
+        decision: 'block',
+        reason: 'No response from model, try again',
+      }
+    }
+
     // If JSON parsing fails, create a default blocking response
     return {
       decision: 'block',

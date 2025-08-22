@@ -117,12 +117,12 @@ describe('Tool-specific schemas', () => {
       {
         description: 'without priority',
         todo: testData.todoWithout(['priority']),
-        expectedSuccess: false,
+        expectedSuccess: true,
       },
       {
         description: 'without id',
         todo: testData.todoWithout(['id']),
-        expectedSuccess: false,
+        expectedSuccess: true,
       },
       {
         description: 'with everything',

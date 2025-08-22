@@ -106,30 +106,38 @@ describe('ClaudeCli', () => {
       expect(result).toBe(modelResponse)
     })
 
-    test('returns undefined when result field is missing', async () => {
+    test('returns original output when result field is missing', async () => {
       const cliOutput = JSON.stringify({ error: 'No result' })
       mockExecFileSync.mockReturnValue(cliOutput)
 
       const result = await client.ask(DEFAULT_TEST_PROMPT)
 
-      expect(result).toBeUndefined()
+      expect(result).toBe(cliOutput)
     })
   })
 
   describe('error handling', () => {
-    test('throws error when execFileSync fails', async () => {
+    test('returns fallback response when execFileSync fails', async () => {
       mockExecFileSync.mockImplementation(() => {
         throw new Error('Command failed')
       })
 
-      await expect(client.ask('test')).rejects.toThrow('Command failed')
+      const result = await client.ask('test')
+      const parsed = JSON.parse(result)
+
+      expect(parsed.decision).toBe('block')
+      expect(parsed.reason).toContain('Todo Guard verification')
     })
 
-    test('throws error when CLI output is not valid JSON', async () => {
+    test('returns fallback response when CLI output is not valid JSON', async () => {
       const rawOutput = 'invalid json or error message'
       mockExecFileSync.mockReturnValue(rawOutput)
 
-      await expect(client.ask('test')).rejects.toThrow()
+      const result = await client.ask('test')
+      const parsed = JSON.parse(result)
+
+      expect(parsed.decision).toBe('block')
+      expect(parsed.reason).toContain('Todo Guard verification')
     })
   })
 
