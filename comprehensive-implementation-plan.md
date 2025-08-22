@@ -2,40 +2,6 @@
 
 ## 🎯 Priority-Ordered Action Plan
 
-### Phase 0: Fix Core Design Flaws (Critical - System behavior issues)
-
-**Goal**: Fix fundamental design flaws discovered during test scenario validation
-
-**Issue 1**: Attempt Counter Over-Incrementing
-
-- Problem: System increments counters for ALL completed todos in every operation, even already-completed ones
-- Current: "Test Case 1" has attempt count of 9 from repeated operations
-- Expected: Should only increment for newly completed todos
-
-**Issue 2**: Unpredictable AI Validation
-
-- Problem: AI receives ALL completed todos in context, randomly questioning old completions
-- Current: AI questioned "Update docs C" when trying to change "Research databases"
-- Expected: AI should only validate newly completed todos
-
-**Implementation Steps**:
-
-1. **Add Previous State Tracking** (src/storage/Storage.ts)
-   - Add `getPreviousTodos()` and `savePreviousTodos()` methods
-   - Store todo list state before each operation
-
-2. **State Comparison Logic** (src/hooks/processHookData.ts)
-   - In `handleTodoValidation()`, compare current vs previous todo states
-   - Identify newly completed todos (changed from non-completed to completed)
-   - Only process attempt tracking for newly completed todos
-
-3. **Fix AI Context Building** (src/hooks/processHookData.ts)
-   - In `buildContextWithTranscript()`, only include newly completed todos
-   - Remove already-completed todos from AI validation context
-
-4. **Update HookEvents** (src/hooks/HookEvents.ts)
-   - Save current todo state as "previous" for next operation comparison
-
 ### Phase 1: Fix Failing Tests (Critical - CI is broken)
 
 **Goal**: Restore green build by updating tests to match new behavior
@@ -154,7 +120,6 @@
 
 ### Immediate (Today):
 
-- Phase 0: Fix core design flaws ⚡ **NEW - CRITICAL**
 - Phase 1: Fix all failing tests ✅
 
 ### Short-term (This Week):
@@ -170,12 +135,11 @@
 
 ## 🚀 Expected Outcomes
 
-1. **Fixed Core Behavior**: Attempt counters only increment for newly completed todos, AI only validates new completions
-2. **Restored CI**: All tests passing with new behavior
-3. **No Infinite Loops**: Configurable retry limits prevent deadlock
-4. **Better Code Quality**: Dead code removed, design documented
-5. **Improved Test Coverage**: New components properly tested
-6. **Easier Debugging**: Optional debug logging when needed
-7. **User Flexibility**: Configurable retry limits (and potentially first-attempt denial)
+1. **Restored CI**: All tests passing with new behavior
+2. **No Infinite Loops**: Configurable retry limits prevent deadlock
+3. **Better Code Quality**: Dead code removed, design documented
+4. **Improved Test Coverage**: New components properly tested
+5. **Easier Debugging**: Optional debug logging when needed
+6. **User Flexibility**: Configurable retry limits (and potentially first-attempt denial)
 
 This plan addresses all issues identified by both our analysis and Gemini's review, prioritized by impact and urgency.
