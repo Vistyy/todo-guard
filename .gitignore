@@ -86,3 +86,6 @@ reporters/pytest/pytest.ini
 
 # Internal documentation
 docs/internal/
+
+#Gemini
+.gemini
