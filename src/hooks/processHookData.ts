@@ -129,7 +129,7 @@ async function handleTodoValidation(hookData: HookData, storage: Storage, guardM
     const todoList = todosExceedingLimit.map(t => `'${t.content}'`).join(', ')
     return {
       decision: 'block',
-      reason: `Maximum retry attempts (${maxRetryAttempts}) exceeded for: ${todoList}. Please wait for user guidance or manually mark as completed.`
+      reason: `Maximum retry attempts (${maxRetryAttempts}) exceeded for: ${todoList}. Stop and await user confirmation.`
     }
   }
 
@@ -190,13 +190,13 @@ async function handleTodoValidation(hookData: HookData, storage: Storage, guardM
     if (firstAttemptTodos.length === 1) {
       return {
         decision: 'block',
-        reason: `Todo Guard check: Did you actually complete '${firstAttemptTodos[0].content}'?`
+        reason: `Todo Guard: Verify that '${firstAttemptTodos[0].content}' is actually complete.`
       }
     } 
       const todoList = firstAttemptTodos.map(t => `'${t.content}'`).join(', ')
       return {
         decision: 'block',
-        reason: `Todo Guard check: You marked ${todoList} as completed. Please confirm you actually completed these tasks.`
+        reason: `Todo Guard: These tasks must be verified as complete: ${todoList}.`
       }
     
   }

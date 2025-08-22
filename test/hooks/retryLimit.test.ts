@@ -102,7 +102,7 @@ describe('Retry Limit Feature', () => {
       
       let result = await processHookData(JSON.stringify(hookData2), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Did you actually complete') // First attempt for todo2
+      expect(result.reason).toContain('Todo Guard: Verify that') // First attempt for todo2
 
       // Try todo1 again - should hit retry limit
       result = await processHookData(JSON.stringify(hookData1), { storage })
@@ -212,7 +212,7 @@ describe('Retry Limit Feature', () => {
       // First attempt should always be blocked with first attempt message, not retry limit
       const result = await processHookData(JSON.stringify(hookData), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Did you actually complete')
+      expect(result.reason).toContain('Todo Guard: Verify that')
       expect(result.reason).not.toContain('Maximum retry attempts')
     })
 
@@ -249,7 +249,7 @@ describe('Retry Limit Feature', () => {
       // Should behave like first attempt again
       const result = await processHookData(JSON.stringify(hookData), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Did you actually complete')
+      expect(result.reason).toContain('Todo Guard: Verify that')
     })
   })
 
@@ -271,7 +271,7 @@ describe('Retry Limit Feature', () => {
 
       const result = await processHookData(JSON.stringify(hookData), { storage, skipHookEvents: true })
       expect(result.decision).toBe('block')
-      expect(result.reason).toContain('Did you actually complete') // First attempt
+      expect(result.reason).toContain('Todo Guard: Verify that') // First attempt
     })
 
     test('does not block when no newly completed todos', async () => {

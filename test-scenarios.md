@@ -16,7 +16,7 @@ This document outlines test cases for validating the "first attempt always denie
 
 **Success Criteria**:
 
-- First attempt blocked with message like "Did you actually complete 'Write a hello world function'?"
+- First attempt blocked with message like "Todo Guard: Verify that 'Write a hello world function' is actually complete."
 - Second attempt goes to AI validation
 - AI approves based on evidence in conversation
 
