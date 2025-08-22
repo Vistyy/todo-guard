@@ -27,6 +27,8 @@ export class GuardManager {
     '*.rst',
   ]
 
+  static readonly DEFAULT_MAX_RETRY_ATTEMPTS = 5
+
   constructor(storage?: Storage) {
     this.storage = storage ?? new FileStorage()
   }
@@ -55,6 +57,11 @@ export class GuardManager {
     return patterns.some((pattern) =>
       minimatch(filePath, pattern, this.minimatchOptions)
     )
+  }
+
+  async getMaxRetryAttempts(): Promise<number> {
+    const config = await this.getConfig()
+    return config?.maxRetryAttempts ?? GuardManager.DEFAULT_MAX_RETRY_ATTEMPTS
   }
 
   private async setGuardEnabled(enabled: boolean): Promise<void> {

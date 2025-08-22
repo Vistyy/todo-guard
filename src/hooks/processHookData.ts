@@ -70,7 +70,7 @@ async function logDebugInfo(message: string, data?: unknown): Promise<void> {
   }
 }
 
-async function handleTodoValidation(hookData: HookData, storage: Storage): Promise<ValidationResult | null> {
+async function handleTodoValidation(hookData: HookData, storage: Storage, guardManager: GuardManager): Promise<ValidationResult | null> {
   const operation = ToolOperationSchema.safeParse(hookData)
   if (!operation.success || !isTodoWriteOperation(operation.data)) {
     return null
@@ -105,13 +105,44 @@ async function handleTodoValidation(hookData: HookData, storage: Storage): Promi
     todos: newlyCompletedTodos.map(t => ({content: t.content, status: t.status}))
   })
 
+  const attemptTracker = new AttemptTracker(storage)
+  
+  // Check retry limit for ALL completed todos in the request (whether newly completed or not)
+  const maxRetryAttempts = await guardManager.getMaxRetryAttempts()
+  await logDebugInfo(`Max retry attempts configured: ${maxRetryAttempts}`)
+  const todosExceedingLimit = []
+  
+  for (const todo of currentTodos.filter(t => t.status === 'completed')) {
+    const currentAttempts = await attemptTracker.getAttemptCount(todo.content)
+    await logDebugInfo(`Completed todo "${todo.content}" attempt count: ${currentAttempts}, max: ${maxRetryAttempts}`)
+    
+    // Check if this todo has exceeded the retry limit  
+    // Using >= because we check BEFORE incrementing the attempt count
+    if (currentAttempts >= maxRetryAttempts) {
+      await logDebugInfo(`Todo "${todo.content}" exceeds retry limit: ${currentAttempts} >= ${maxRetryAttempts}`)
+      todosExceedingLimit.push(todo)
+    }
+  }
+  
+  // Block if any todos exceed retry limit
+  if (todosExceedingLimit.length > 0) {
+    const todoList = todosExceedingLimit.map(t => `'${t.content}'`).join(', ')
+    return {
+      decision: 'block',
+      reason: `Maximum retry attempts (${maxRetryAttempts}) exceeded for: ${todoList}. Please wait for user guidance or manually mark as completed.`
+    }
+  }
+
   // If no newly completed todos, skip validation entirely
   if (newlyCompletedTodos.length === 0) {
     await logDebugInfo('No newly completed todos, skipping validation')
+    // Still increment attempts for all completed todos in request before skipping
+    for (const todo of currentTodos.filter(t => t.status === 'completed')) {
+      await attemptTracker.incrementAttempt(todo.content)
+    }
     return null
   }
 
-  const attemptTracker = new AttemptTracker(storage)
   const nonCompletedTodos = currentTodos.filter(todo => todo.status !== 'completed')
   
   // Reset attempts for todos moved back to non-completed
@@ -120,27 +151,42 @@ async function handleTodoValidation(hookData: HookData, storage: Storage): Promi
     await attemptTracker.resetAttemptsForTodos(todoContentsToReset)
     await logDebugInfo('Reset attempts for todos moved back to non-completed', todoContentsToReset)
   }
-  
+
   const firstAttemptTodos = []
   const subsequentAttemptTodos = []
   
-  // Only process newly completed todos for attempt tracking
+  await logDebugInfo('Processing newly completed todos for first attempt logic', {
+    newlyCompletedCount: newlyCompletedTodos.length,
+    newlyCompletedTodos: newlyCompletedTodos.map(t => t.content)
+  })
+  
+  // Process newly completed todos for first vs subsequent attempt logic BEFORE incrementing
   for (const todo of newlyCompletedTodos) {
     const attemptCount = await attemptTracker.getAttemptCount(todo.content)
-    await logDebugInfo(`Newly completed todo "${todo.content}" attempt count`, attemptCount)
+    await logDebugInfo(`Checking attempt count for "${todo.content}": ${attemptCount}`)
     
     if (attemptCount === 0) {
       firstAttemptTodos.push(todo)
+      await logDebugInfo(`Added "${todo.content}" to first attempt todos`)
     } else {
       subsequentAttemptTodos.push(todo)
+      await logDebugInfo(`Added "${todo.content}" to subsequent attempt todos`)
     }
   }
 
+  await logDebugInfo('First attempt analysis complete', {
+    firstAttemptCount: firstAttemptTodos.length,
+    subsequentAttemptCount: subsequentAttemptTodos.length
+  })
+
+  // Now increment attempt counter for ALL completed todos in the request
+  for (const todo of currentTodos.filter(t => t.status === 'completed')) {
+    await attemptTracker.incrementAttempt(todo.content)
+    await logDebugInfo(`Incremented attempt counter for "${todo.content}"`)
+  }
+
   if (firstAttemptTodos.length > 0) {
-    for (const todo of firstAttemptTodos) {
-      await attemptTracker.incrementAttempt(todo.content)
-    }
-    
+    await logDebugInfo('Found first attempt todos, blocking with first attempt message')
     if (firstAttemptTodos.length === 1) {
       return {
         decision: 'block',
@@ -154,10 +200,6 @@ async function handleTodoValidation(hookData: HookData, storage: Storage): Promi
       }
     
   }
-
-  for (const todo of subsequentAttemptTodos) {
-    await attemptTracker.incrementAttempt(todo.content)
-  }
   
   return null
 }
@@ -166,6 +208,7 @@ export interface ProcessHookDataDeps {
   storage?: Storage
   validator?: (context: Context) => Promise<ValidationResult>
   userPromptHandler?: UserPromptHandler
+  skipHookEvents?: boolean
 }
 
 export const defaultResult: ValidationResult = {
@@ -240,7 +283,9 @@ export async function processHookData(
     return defaultResult
   }
 
-  await processHookEvent(parsedData, storage)
+  if (!deps.skipHookEvents) {
+    await processHookEvent(parsedData, storage)
+  }
 
   // Todo Guard doesn't use PostToolUse linting (that was Todo Guard functionality)
   if (hookResult.data.hook_event_name === 'PostToolUse') {
@@ -253,7 +298,7 @@ export async function processHookData(
 
   // Only validate TodoWrite operations that have completed todos
   if (hookResult.data.hook_event_name === 'PreToolUse') {
-    const todoValidationResult = await handleTodoValidation(hookResult.data, storage)
+    const todoValidationResult = await handleTodoValidation(hookResult.data, storage, guardManager)
     if (todoValidationResult) {
       return todoValidationResult
     }
